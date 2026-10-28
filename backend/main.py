@@ -47,9 +47,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Path to static frontend files
+# Path to frontend files
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
-STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
+DIST_DIR = os.path.join(FRONTEND_DIR, "dist")
+ASSETS_DIR = os.path.join(DIST_DIR, "assets")
 
 
 # Pydantic Request Models
@@ -217,18 +218,21 @@ async def chat_sync(
     )
 
 
-# Mount static assets
-if os.path.exists(STATIC_DIR):
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Mount built React static assets
+if os.path.exists(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
 
 @app.get("/")
 async def serve_index():
-    """Serve frontend web interface."""
+    """Serve frontend React web interface."""
+    dist_index = os.path.join(DIST_DIR, "index.html")
+    if os.path.exists(dist_index):
+        return FileResponse(dist_index)
     index_file = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_file):
         return FileResponse(index_file)
-    return {"message": "Dar Global & Wasalt Chatbot API is running. Index file not found."}
+    return {"message": "Dar Global & Wasalt Chatbot API is running."}
 
 
 if __name__ == "__main__":

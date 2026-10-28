@@ -1,29 +1,31 @@
 # Production Multi-Stage Dockerfile for Dar Global & Wasalt AI Chatbot
-# Follows container security best practices: non-root user, slim image, minimal layers
+# Stage 1: Build React 18 Frontend
+FROM node:20-slim AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
 
-FROM python:3.10-slim AS builder
-
+# Stage 2: Install Python dependencies
+FROM python:3.10-slim AS python-builder
 WORKDIR /app
-
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Final runtime image
+# Stage 3: Final Production Runtime Image
 FROM python:3.10-slim
-
 WORKDIR /app
 
 # Create non-root system user
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser
 
-# Copy installed python wheels from builder
-COPY --from=builder /root/.local /app/.local
+# Copy python dependencies from python-builder
+COPY --from=python-builder /root/.local /app/.local
 ENV PATH=/app/.local/bin:$PATH
 ENV PYTHONPATH=/app
 ENV PORT=8000
@@ -34,6 +36,9 @@ COPY data/ ./data/
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY scripts/ ./scripts/
+
+# Ensure production React build is in frontend/dist
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 
 # Ensure non-root ownership
 RUN chown -R appuser:appuser /app

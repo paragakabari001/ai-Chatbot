@@ -3,7 +3,7 @@
 > **Production AI Full-Stack Engineer (FDE) Technical Assignment**  
 > Candidate: **PARAG AKABARI**  
 > Repository: [https://github.com/paragakabari001/ai-Chatbot.git](https://github.com/paragakabari001/ai-Chatbot.git)  
-> Live Application URL: [https://chat-moment-fwd-doug.trycloudflare.com](https://chat-moment-fwd-doug.trycloudflare.com)  
+> Live Application URL: [https://easily-subscriptions-defensive-questions.trycloudflare.com](https://easily-subscriptions-defensive-questions.trycloudflare.com)  
 
 ---
 
@@ -213,4 +213,4 @@ ai-Chatbot/
 - **Candidate**: Parag Akabari
 - **Role**: AI Full-Stack Engineer (FDE)
 - **GitHub Repository**: [paragakabari001/ai-Chatbot](https://github.com/paragakabari001/ai-Chatbot.git)
-- **Live Demo URL**: [https://chat-moment-fwd-doug.trycloudflare.com](https://chat-moment-fwd-doug.trycloudflare.com)
+- **Live Demo URL**: [https://easily-subscriptions-defensive-questions.trycloudflare.com](https://easily-subscriptions-defensive-questions.trycloudflare.com)
