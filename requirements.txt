@@ -1,0 +1,12 @@
+# Core Web & API Framework
+fastapi==0.115.11
+uvicorn[standard]==0.34.0
+pydantic==2.10.6
+
+# HTTP & Scraping Clients
+httpx==0.28.1
+curl_cffi==0.17.0
+beautifulsoup4==4.12.3
+
+# Testing
+pytest==9.2.0

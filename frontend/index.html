@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dar Global & Wasalt | AI Real Estate Advisor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <!-- Markdown parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navbar -->
+    <header class="top-nav">
+      <div class="brand-group">
+        <div class="brand-badge gold">
+          <span class="dot"></span>
+          <strong>DAR GLOBAL</strong>
+          <small>LSE: DAR</small>
+        </div>
+        <div class="brand-divider">✕</div>
+        <div class="brand-badge emerald">
+          <span class="dot"></span>
+          <strong>WASALT</strong>
+          <small>REGA Certified</small>
+        </div>
+      </div>
+
+      <div class="nav-controls">
+        <div class="kb-badge" id="kb-stats-pill" title="Indexed documents from Dar Global & Wasalt">
+          <span class="icon">📚</span>
+          <span id="kb-stats-text">59 Docs Grounded</span>
+        </div>
+
+        <div class="model-picker-wrap">
+          <label for="model-select">Model:</label>
+          <select id="model-select">
+            <option value="google/gemini-2.0-flash-exp:free" selected>Gemini 2.0 Flash (Free)</option>
+            <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free)</option>
+            <option value="qwen/qwen-2.5-coder-32b-instruct:free">Qwen 2.5 Coder 32B (Free)</option>
+            <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (Free)</option>
+            <option value="deepseek/deepseek-r1:free">DeepSeek R1 (Free)</option>
+          </select>
+        </div>
+
+        <button class="icon-btn" id="open-settings-btn" title="OpenRouter API Key Settings">
+          ⚙️ <span class="btn-text">API Key</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Chat Canvas -->
+    <main class="chat-canvas">
+      <!-- Welcome Hero (shown when chat is empty) -->
+      <section class="hero-section" id="hero-section">
+        <div class="hero-tag">Official Grounded AI Advisor</div>
+        <h1 class="hero-title">Exclusive Real Estate Intelligence</h1>
+        <p class="hero-subtitle">
+          Authoritative advisory grounded exclusively in publicly available data from 
+          <a href="https://darglobal.co.uk/" target="_blank" rel="noopener">Dar Global</a> 
+          and 
+          <a href="https://wasalt.sa/en" target="_blank" rel="noopener">Wasalt</a>.
+        </p>
+
+        <!-- Suggested Prompt Chips -->
+        <div class="suggestions-grid">
+          <button class="chip" data-prompt="What are Dar Global's top luxury branded residential projects and locations?">
+            <span class="chip-icon">💎</span>
+            <span class="chip-text">Dar Global Luxury Projects & Brands</span>
+          </button>
+          <button class="chip" data-prompt="How do I explore and rent apartments or villas in Riyadh using Wasalt?">
+            <span class="chip-icon">🏙️</span>
+            <span class="chip-text">Rent / Buy in Riyadh on Wasalt</span>
+          </button>
+          <button class="chip" data-prompt="Explain Dar Global's 7-day token reservation policy and purchase agreement terms.">
+            <span class="chip-icon">📑</span>
+            <span class="chip-text">7-Day Token Reservation Policy</span>
+          </button>
+          <button class="chip" data-prompt="What Saudi regulatory requirements (REGA, Fal licenses, Ejar) apply to Wasalt transactions?">
+            <span class="chip-icon">⚖️</span>
+            <span class="chip-text">Saudi REGA, Fal & Ejar Laws</span>
+          </button>
+          <button class="chip" data-prompt="Compare Dar Global international luxury investments with Wasalt Saudi domestic real estate opportunities.">
+            <span class="chip-icon">🌐</span>
+            <span class="chip-text">Compare Dar Global vs. Wasalt</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Chat Messages Container -->
+      <div class="messages-container" id="messages-container"></div>
+    </main>
+
+    <!-- Chat Input Section -->
+    <footer class="input-section">
+      <div class="input-card">
+        <textarea
+          id="user-input"
+          placeholder="Ask anything about Dar Global developments or Wasalt properties..."
+          rows="1"
+        ></textarea>
+        <div class="action-buttons">
+          <button class="clear-btn" id="clear-btn" title="Clear conversation">Clear</button>
+          <button class="send-btn" id="send-btn" title="Send inquiry">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="footer-footnote">
+        <span>Grounded on live public data from Dar Global & Wasalt • Zero Hallucination Retrieval Policy</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>OpenRouter API Key Configuration</h3>
+        <button class="close-btn" id="close-settings-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          You can provide your own <strong>OpenRouter API Key</strong> for full access to free models 
+          (e.g. <code>google/gemini-2.0-flash-exp:free</code>).
+        </p>
+        <p class="security-note">
+          🔒 <em>Your key is stored securely in your browser's local storage and only transmitted directly in request headers. If left empty, our intelligent grounded fallback synthesizer answers directly.</em>
+        </p>
+        <div class="input-group">
+          <label for="api-key-input">OpenRouter Key (sk-or-...)</label>
+          <input type="password" id="api-key-input" placeholder="sk-or-v1-...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" id="clear-key-btn">Clear Key</button>
+        <button class="btn primary" id="save-key-btn">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
