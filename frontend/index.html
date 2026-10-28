@@ -553,7 +553,7 @@
               return { messages: msgs };
             });
             setTokensUsed(prev => prev + token.split(/\s+/).length);
-            setTimeout(resolve, 28); // slow-type delay
+            setTimeout(resolve, 45); // smooth slow-type delay
           });
 
           while (true) {

@@ -4,6 +4,7 @@ Manages interactions with OpenRouter API (OpenAI GPT-4o and Free models),
 real-time SSE streaming, and grounded fallback synthesis.
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -148,6 +149,7 @@ async def stream_rag_response(
     words = fallback_text.split(" ")
     for i, word in enumerate(words):
         yield word + (" " if i < len(words) - 1 else "")
+        await asyncio.sleep(0.04)
 
 
 async def generate_rag_response_sync(
