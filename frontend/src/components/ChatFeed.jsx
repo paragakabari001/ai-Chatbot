@@ -25,7 +25,7 @@ export default function ChatFeed({
       <div
         ref={chatContainerRef}
         onScroll={onScroll}
-        className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-36 px-1"
+        className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-56 sm:pb-64 px-1"
       >
         {messages.map((m, idx) => {
           const isCurrentStreaming = isStreaming && idx === messages.length - 1;
@@ -64,12 +64,12 @@ export default function ChatFeed({
         })}
       </div>
 
-      {/* Scroll-to-bottom floating button (Image 4 style: circular button with down chevron) */}
+      {/* Scroll-to-bottom floating button (Image 4 style: circular button with down chevron above input) */}
       {showScrollBottom && (
         <button
           type="button"
           onClick={onScrollToBottom}
-          className="absolute right-4 sm:right-6 bottom-24 sm:bottom-28 z-30 w-8 h-8 rounded-full bg-[#1C1C1C] hover:bg-[#282828] border border-neutral-700/80 text-white shadow-xl flex items-center justify-center transition animate-appear"
+          className="absolute right-4 sm:right-6 bottom-40 sm:bottom-44 z-30 w-8 h-8 rounded-full bg-[#1C1C1C] hover:bg-[#282828] border border-neutral-700/80 text-white shadow-xl flex items-center justify-center transition animate-appear"
           title="Scroll to latest message"
         >
           <svg className="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

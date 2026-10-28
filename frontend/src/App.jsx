@@ -540,25 +540,27 @@ export default function App() {
           />
         )}
 
-        {/* Floating Input Bar (when messages exist) */}
+        {/* Floating Input Bar with background gradient fade (prevents text overlap) */}
         {messages.length > 0 && (
-          <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 px-2 sm:px-3">
-            <InputBar
-              compact={true}
-              input={input}
-              setInput={setInput}
-              isStreaming={isStreaming}
-              handleSend={handleSend}
-              handleStopStreaming={handleStopStreaming}
-              handleNewChat={handleNewChat}
-              chatInputRef={chatInputRef}
-              popoverRef={popoverRef}
-              showModelPicker={showModelPicker}
-              setShowModelPicker={setShowModelPicker}
-              model={model}
-              setModel={setModel}
-              currentModelObj={currentModelObj}
-            />
+          <div className="absolute bottom-0 left-0 right-0 px-2 sm:px-3 pb-3 sm:pb-4 pt-8 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/95 to-transparent pointer-events-none">
+            <div className="pointer-events-auto max-w-3xl mx-auto">
+              <InputBar
+                compact={true}
+                input={input}
+                setInput={setInput}
+                isStreaming={isStreaming}
+                handleSend={handleSend}
+                handleStopStreaming={handleStopStreaming}
+                handleNewChat={handleNewChat}
+                chatInputRef={chatInputRef}
+                popoverRef={popoverRef}
+                showModelPicker={showModelPicker}
+                setShowModelPicker={setShowModelPicker}
+                model={model}
+                setModel={setModel}
+                currentModelObj={currentModelObj}
+              />
+            </div>
           </div>
         )}
       </main>
