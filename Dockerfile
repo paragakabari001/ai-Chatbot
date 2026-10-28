@@ -1,7 +1,7 @@
 # Production Multi-Stage Dockerfile for Dar Global & Wasalt AI Chatbot
 # Follows container security best practices: non-root user, slim image, minimal layers
 
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 WORKDIR /app
 

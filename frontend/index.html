@@ -721,24 +721,26 @@
 
       // ── Input Bar shared ────────────────────────────────────────────────────
       const InputBar = ({ compact }) => (
-        <div className={`bg-[#161616] border border-[#262626] rounded-2xl sm:rounded-3xl ${compact ? "p-2.5 sm:p-3" : "p-3 sm:p-4"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
+        <div className={`bg-[#161616] border border-[#262626] rounded-2xl sm:rounded-3xl ${compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
           <textarea
             ref={chatInputRef}
-            rows={compact ? 1 : 2}
+            rows={compact ? 2 : 3}
             value={input}
             onChange={e => {
               setInput(e.target.value);
               e.target.style.height = "auto";
-              e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+              e.target.style.height = Math.max(compact ? 48 : 72, Math.min(e.target.scrollHeight, 160)) + "px";
             }}
             onKeyDown={e => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
             placeholder={compact ? "Ask about Dar Global or Wasalt..." : "Ask anything about Dar Global luxury developments or Wasalt properties..."}
-            className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-36 px-1"
+            className={`w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none px-1.5 ${
+              compact ? "min-h-[48px] sm:min-h-[56px]" : "min-h-[72px] sm:min-h-[84px]"
+            } leading-relaxed`}
             disabled={isStreaming}
           />
-          <div className={`flex items-center justify-between ${compact ? "mt-1.5 pt-1.5" : "mt-2.5 pt-2"} border-t border-[#222222]`}>
+          <div className="flex items-center justify-between pt-1.5 sm:pt-2">
             {/* Left: New Chat */}
             <div className="flex items-center gap-1.5">
               <button
