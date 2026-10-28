@@ -1,0 +1,15 @@
+{
+  "name": "dar-global-wasalt-ai-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production React AI Chatbot grounded in Dar Global and Wasalt data",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  }
+}

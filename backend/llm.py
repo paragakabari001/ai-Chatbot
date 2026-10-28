@@ -1,7 +1,7 @@
 """
 OpenRouter LLM Interface
-Manages interactions with OpenRouter's free tier models,
-streaming token generation, and graceful fallback synthesis.
+Manages interactions with OpenRouter API (OpenAI GPT-4o and Free models),
+real-time SSE streaming, and grounded fallback synthesis.
 """
 
 import json
@@ -16,41 +16,52 @@ logger = logging.getLogger(__name__)
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Curated list of verified free models on OpenRouter
+# Models catalog: Flagship GPT-4o and verified free options
 SUPPORTED_FREE_MODELS = [
     {
-        "id": "google/gemini-2.0-flash-exp:free",
-        "name": "Gemini 2.0 Flash (Free)",
-        "description": "High speed, large context window, excellent reasoning.",
+        "id": "openai/gpt-4o",
+        "name": "OpenAI GPT-4o (Flagship)",
+        "description": "High intelligence, precise instruction following, excellent grounding.",
         "recommended": True
     },
     {
+        "id": "google/gemini-2.0-flash-exp:free",
+        "name": "Gemini 2.0 Flash (Free)",
+        "description": "High speed conversational model.",
+        "recommended": False
+    },
+    {
         "id": "meta-llama/llama-3.3-70b-instruct:free",
-        "name": "Llama 3.3 70B Instruct (Free)",
-        "description": "State-of-the-art open source reasoning and detail.",
+        "name": "Llama 3.3 70B (Free)",
+        "description": "Open weights reasoning model.",
         "recommended": False
     },
     {
         "id": "qwen/qwen-2.5-coder-32b-instruct:free",
         "name": "Qwen 2.5 Coder 32B (Free)",
-        "description": "High precision instruction-following.",
-        "recommended": False
-    },
-    {
-        "id": "mistralai/mistral-7b-instruct:free",
-        "name": "Mistral 7B Instruct (Free)",
-        "description": "Fast and lightweight generation.",
-        "recommended": False
-    },
-    {
-        "id": "deepseek/deepseek-r1:free",
-        "name": "DeepSeek R1 (Free)",
-        "description": "Deep reasoning model with step-by-step logic.",
+        "description": "High precision coding & reasoning.",
         "recommended": False
     }
 ]
 
-DEFAULT_MODEL = "google/gemini-2.0-flash-exp:free"
+DEFAULT_MODEL = "openai/gpt-4o"
+
+
+def load_env_file():
+    """Load variables from .env file if present."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    env_path = os.path.join(base_dir, ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    if k.strip() not in os.environ:
+                        os.environ[k.strip()] = v.strip()
+
+
+load_env_file()
 
 
 def get_api_key(custom_key: Optional[str] = None) -> Optional[str]:
@@ -76,7 +87,7 @@ async def call_openrouter_streaming(
         "model": model,
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 1500,
+        "max_tokens": 1200,
         "stream": True
     }
 
@@ -132,7 +143,6 @@ async def stream_rag_response(
 
     # Fallback to local deterministic grounded synthesis
     fallback_text = generate_extractive_fallback(query, retrieved_docs)
-    # Stream in word chunks for consistent UX
     words = fallback_text.split(" ")
     for i, word in enumerate(words):
         yield word + (" " if i < len(words) - 1 else "")
