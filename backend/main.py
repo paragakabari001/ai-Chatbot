@@ -5,7 +5,14 @@ FastAPI Full-Stack Server for Dar Global & Wasalt AI Chatbot
 import json
 import logging
 import os
+import sys
 import time
+
+# Ensure project root is in sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from typing import Optional, List
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware

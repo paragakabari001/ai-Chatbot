@@ -3,7 +3,7 @@
 > **Production AI Full-Stack Engineer (FDE) Technical Assignment**  
 > Candidate: **PARAG AKABARI**  
 > Repository: [https://github.com/paragakabari001/ai-Chatbot.git](https://github.com/paragakabari001/ai-Chatbot.git)  
-> Live Application URL: [https://paragakabari-ai-chatbot.onrender.com](https://paragakabari-ai-chatbot.onrender.com) *(Also deployable locally via Docker Compose or cloud run)*
+> Live Application URL: [https://boys-disclose-courage-ours.trycloudflare.com](https://boys-disclose-courage-ours.trycloudflare.com)  
 
 ---
 
@@ -213,4 +213,4 @@ ai-Chatbot/
 - **Candidate**: Parag Akabari
 - **Role**: AI Full-Stack Engineer (FDE)
 - **GitHub Repository**: [paragakabari001/ai-Chatbot](https://github.com/paragakabari001/ai-Chatbot.git)
-- **Live Demo**: [https://paragakabari-ai-chatbot.onrender.com](https://paragakabari-ai-chatbot.onrender.com)
+- **Live Demo URL**: [https://boys-disclose-courage-ours.trycloudflare.com](https://boys-disclose-courage-ours.trycloudflare.com)
