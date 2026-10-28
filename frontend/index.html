@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dar Global & Wasalt | AI Real Estate Advisor</title>
 
   <!-- Tailwind CSS CDN -->
@@ -43,11 +43,16 @@
   <style>
     /* ===== GLOBAL ===== */
     *, *::before, *::after { box-sizing: border-box; }
-    body {
+    html, body {
       background-color: #0A0A0A;
       color: #E5E5E5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ===== HIDE ALL SCROLLBARS ===== */
@@ -64,7 +69,7 @@
       vertical-align: middle;
       color: #FFFFFF;
       animation: blink 0.8s infinite;
-      margin-left: 2px;
+      margin-left: 3px;
     }
     @keyframes blink {
       0%, 100% { opacity: 1; }
@@ -78,18 +83,18 @@
     }
     .skeleton-line {
       border-radius: 6px;
-      background: linear-gradient(90deg, #1a1a1a 25%, #282828 50%, #1a1a1a 75%);
+      background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
       background-size: 800px 100%;
       animation: shimmer 1.4s infinite linear;
     }
 
     /* ===== CITATIONS APPEAR ANIMATION ===== */
     @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .cite-appear {
-      animation: fadeSlideUp 0.35s ease forwards;
+      animation: fadeSlideUp 0.3s ease forwards;
     }
 
     /* ===== SPEAK PULSE ===== */
@@ -99,18 +104,6 @@
     }
     .speaking-active {
       animation: speakPulse 1.2s infinite ease-in-out;
-    }
-
-    /* ===== USAGE RING ===== */
-    .usage-ring-track { fill: none; stroke: #262626; stroke-width: 3; }
-    .usage-ring-fill  {
-      fill: none;
-      stroke: #3B82F6;
-      stroke-width: 3;
-      stroke-linecap: round;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-      transition: stroke-dashoffset 0.6s ease;
     }
 
     /* ===== SIDEBAR ===== */
@@ -133,7 +126,7 @@
     .prose-chat li { margin-bottom: 0.35rem; line-height: 1.6; font-size: 0.9375rem; }
     .prose-chat strong { color: #fff; font-weight: 600; }
     .prose-chat a { color: #60A5FA; text-decoration: underline; text-underline-offset: 2px; }
-    .prose-chat a .ext-icon { display: inline-block; margin-right: 3px; font-size: 0.7em; vertical-align: middle; opacity: 0.8; }
+    .prose-chat a .ext-icon { display: inline-block; margin-right: 3px; font-size: 0.75em; vertical-align: middle; opacity: 0.85; }
     .prose-chat code {
       background-color: #1A1A1A; color: #E5E5E5;
       padding: 0.15rem 0.35rem; border-radius: 0.25rem;
@@ -149,11 +142,36 @@
     .prose-chat td { padding: 0.5rem 0.75rem; border: 1px solid #222; color: #D4D4D4; }
   </style>
 </head>
-<body class="bg-[#0A0A0A] text-[#E5E5E5] min-h-screen antialiased">
-  <div id="root" class="flex h-screen overflow-hidden"></div>
+<body class="bg-[#0A0A0A] text-[#E5E5E5] h-screen w-screen overflow-hidden antialiased">
+  <div id="root" class="h-full w-full"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ── Supported AI Models ──────────────────────────────────────────────────
+    const SUPPORTED_MODELS = [
+      {
+        id: "openai/gpt-4o",
+        label: "OpenAI GPT-4o",
+        shortLabel: "GPT-4o",
+        badge: "⭐ Recommended",
+        badgeColor: "bg-blue-600/30 text-blue-300 border border-blue-500/40"
+      },
+      {
+        id: "google/gemini-2.0-flash-exp:free",
+        label: "Gemini 2.0 Flash",
+        shortLabel: "Gemini Flash",
+        badge: "Free",
+        badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700"
+      },
+      {
+        id: "meta-llama/llama-3.3-70b-instruct:free",
+        label: "Llama 3.3 70B",
+        shortLabel: "Llama 3.3",
+        badge: "Free",
+        badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700"
+      }
+    ];
 
     // ── Markdown config ──────────────────────────────────────────────────────
     marked.setOptions({ breaks: true, gfm: true });
@@ -193,35 +211,6 @@
         .replace(/[-*+]\s/g, "")
         .replace(/\n+/g, " ")
         .trim();
-    }
-
-    // ── Circular Usage Ring ───────────────────────────────────────────────────
-    function UsageRing({ used, limit }) {
-      const pct   = Math.min(used / limit, 1);
-      const r     = 10;
-      const circ  = 2 * Math.PI * r;
-      const offset = circ * (1 - pct);
-      const label = used >= 1000 ? `${(used / 1000).toFixed(1)}k` : used;
-      const color = pct > 0.85 ? "#EF4444" : pct > 0.65 ? "#F59E0B" : "#3B82F6";
-
-      return (
-        <div className="relative flex items-center justify-center" title={`${Math.round(pct*100)}% of ~${limit} token budget used`}>
-          <svg width="28" height="28" viewBox="0 0 28 28">
-            <circle className="usage-ring-track" cx="14" cy="14" r={r} />
-            <circle
-              className="usage-ring-fill"
-              cx="14" cy="14" r={r}
-              stroke={color}
-              strokeDasharray={circ}
-              strokeDashoffset={offset}
-              style={{ transformOrigin: "14px 14px" }}
-            />
-          </svg>
-          <span className="absolute text-[7px] font-bold text-neutral-300 leading-none">
-            {label}
-          </span>
-        </div>
-      );
     }
 
     // ── Speak Button ─────────────────────────────────────────────────────────
@@ -364,7 +353,7 @@
       return (
         <div className="fixed inset-0 z-40 flex" onClick={onClose}>
           <div
-            className="relative w-72 h-full bg-[#0D0D0D] border-r border-[#1E1E1E] flex flex-col sidebar-enter"
+            className="relative w-72 max-w-[85vw] h-full bg-[#0D0D0D] border-r border-[#1E1E1E] flex flex-col sidebar-enter"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
@@ -381,7 +370,7 @@
                   </svg>
                   New
                 </button>
-                <button onClick={onClose} className="text-neutral-500 hover:text-white transition">
+                <button onClick={onClose} className="text-neutral-500 hover:text-white transition p-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                   </svg>
@@ -404,7 +393,7 @@
                   }`}
                   onClick={() => { onSelect(s.id); onClose(); }}
                 >
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-2">
                     <div className="text-xs font-medium truncate">{s.title}</div>
                     <div className="text-[10px] text-neutral-600 mt-0.5">
                       {new Date(s.ts).toLocaleDateString()} · {s.messages.length} msgs
@@ -412,7 +401,7 @@
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(s.id); }}
-                    className="opacity-0 group-hover:opacity-100 ml-2 text-neutral-600 hover:text-red-400 transition"
+                    className="opacity-0 group-hover:opacity-100 text-neutral-600 hover:text-red-400 transition p-1"
                     title="Delete"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -429,7 +418,7 @@
             </div>
           </div>
           {/* Backdrop */}
-          <div className="flex-1 bg-black/40 backdrop-blur-sm" />
+          <div className="flex-1 bg-black/50 backdrop-blur-sm" />
         </div>
       );
     }
@@ -460,12 +449,31 @@
       const [sidebarOpen, setSidebarOpen]   = useState(false);
       const [citationsLoading, setCitationsLoading] = useState(false);
 
-      // Usage tracking (tokens per session)
-      const [tokensUsed, setTokensUsed]     = useState(0);
-      const TOKEN_LIMIT = 4000;
-
       const messagesEndRef = useRef(null);
       const chatInputRef   = useRef(null);
+      const popoverRef     = useRef(null);
+
+      // Current selected model object
+      const currentModelObj = useMemo(() => {
+        return SUPPORTED_MODELS.find(m => m.id === model) || SUPPORTED_MODELS[0];
+      }, [model]);
+
+      // Click outside to close model popover
+      useEffect(() => {
+        function handleClickOutside(e) {
+          if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+            setShowModelPicker(false);
+          }
+        }
+        if (showModelPicker) {
+          document.addEventListener("mousedown", handleClickOutside);
+          document.addEventListener("touchstart", handleClickOutside);
+        }
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+          document.removeEventListener("touchstart", handleClickOutside);
+        };
+      }, [showModelPicker]);
 
       // Persist sessions to localStorage
       useEffect(() => { saveHistory(sessions); }, [sessions]);
@@ -487,13 +495,26 @@
         "What are Saudi REGA regulations on Wasalt?"
       ];
 
+      // Handle clicking a readymade prompt: paste into input + focus, or send on enter
+      const handleSelectPrompt = (promptText) => {
+        setInput(promptText);
+        if (chatInputRef.current) {
+          chatInputRef.current.focus();
+          chatInputRef.current.style.height = "auto";
+          setTimeout(() => {
+            if (chatInputRef.current) {
+              chatInputRef.current.style.height = Math.min(chatInputRef.current.scrollHeight, 140) + "px";
+            }
+          }, 10);
+        }
+      };
+
       // ── New Chat ────────────────────────────────────────────────────────────
       const handleNewChat = useCallback(() => {
         const s = newSession();
         setSessions(prev => [...prev, s]);
         setCurrentId(s.id);
         setInput("");
-        setTokensUsed(0);
         setSidebarOpen(false);
       }, []);
 
@@ -511,14 +532,14 @@
         });
       }, [currentId]);
 
-      // ── Send message ────────────────────────────────────────────────────────
+      // ── Send message (supports retry) ────────────────────────────────────────
       const handleSend = async (textToSend) => {
         const query = (textToSend || input).trim();
         if (!query || isStreaming) return;
 
         const sessId = currentId;
         const userMsg = { role: "user", content: query };
-        const assistMsg = { role: "assistant", content: "", citations: [], id: Date.now(), citLoading: true };
+        const assistMsg = { role: "assistant", content: "", citations: [], id: Date.now(), citLoading: true, isError: false };
 
         updateSession(sessId, s => ({
           messages: [...s.messages, userMsg, assistMsg],
@@ -552,7 +573,6 @@
               }
               return { messages: msgs };
             });
-            setTokensUsed(prev => prev + token.split(/\s+/).length);
             setTimeout(resolve, 45); // smooth slow-type delay
           });
 
@@ -578,7 +598,6 @@
               if (eventType === "citations") {
                 try {
                   const parsed = JSON.parse(dataStr);
-                  // Show skeleton briefly, then reveal
                   setCitationsLoading(true);
                   updateSession(sessId, s => {
                     const msgs = [...s.messages];
@@ -588,7 +607,6 @@
                     }
                     return { messages: msgs };
                   });
-                  // Reveal after 800ms
                   setTimeout(() => {
                     setCitationsLoading(false);
                     updateSession(sessId, s => {
@@ -613,7 +631,13 @@
             const msgs = [...s.messages];
             const last = msgs[msgs.length - 1];
             if (last && last.role === "assistant") {
-              msgs[msgs.length - 1] = { ...last, content: `⚠️ Error: ${err.message}. Please retry.`, citLoading: false };
+              msgs[msgs.length - 1] = {
+                ...last,
+                content: `Unable to complete request: ${err.message}. Please check network connection and try again.`,
+                isError: true,
+                failedQuery: query,
+                citLoading: false
+              };
             }
             return { messages: msgs };
           });
@@ -623,11 +647,22 @@
         }
       };
 
+      // ── Retry a failed message ────────────────────────────────────────────────
+      const handleRetry = (failedQuery, errorMsgIdx) => {
+        if (!failedQuery || isStreaming) return;
+        // Remove the failed assistant message and resend query
+        updateSession(currentId, s => {
+          const msgs = s.messages.filter((_, i) => i !== errorMsgIdx && i !== errorMsgIdx - 1);
+          return { messages: msgs };
+        });
+        handleSend(failedQuery);
+      };
+
       const copyToClipboard = (text) => navigator.clipboard.writeText(text);
 
       // ── Input Bar shared ────────────────────────────────────────────────────
       const InputBar = ({ compact }) => (
-        <div className={`bg-[#161616] border border-[#262626] rounded-3xl ${compact ? "p-3" : "p-4"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
+        <div className={`bg-[#161616] border border-[#262626] rounded-2xl sm:rounded-3xl ${compact ? "p-2.5 sm:p-3" : "p-3 sm:p-4"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
           <textarea
             ref={chatInputRef}
             rows={compact ? 1 : 2}
@@ -641,68 +676,83 @@
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
             placeholder={compact ? "Ask about Dar Global or Wasalt..." : "Ask anything about Dar Global luxury developments or Wasalt properties..."}
-            className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-36"
+            className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-36 px-1"
             disabled={isStreaming}
           />
-          <div className={`flex items-center justify-between ${compact ? "mt-2 pt-2" : "mt-3 pt-2"} border-t border-[#222222]`}>
-            {/* Left: New Chat + History */}
-            <div className="flex items-center gap-2">
+          <div className={`flex items-center justify-between ${compact ? "mt-1.5 pt-1.5" : "mt-2.5 pt-2"} border-t border-[#222222]`}>
+            {/* Left: New Chat */}
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={handleNewChat}
-                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-300 px-2 py-0.5 rounded transition"
+                className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-lg hover:bg-neutral-800 transition"
                 title="New Chat"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
                 </svg>
-                New Chat
+                <span className="hidden sm:inline">New Chat</span>
               </button>
             </div>
 
-            {/* Right: model + usage + send */}
-            <div className="flex items-center gap-2.5">
-              {/* Usage ring */}
+            {/* Right: Model selector + Send */}
+            <div className="flex items-center gap-2" ref={popoverRef}>
+              {/* Spinner when streaming */}
               {isStreaming && (
-                <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin" title="Processing..."/>
+                <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin mr-1" title="Generating response..."/>
               )}
-              <UsageRing used={tokensUsed} limit={TOKEN_LIMIT} />
 
-              {/* Model Selector */}
+              {/* Model Selector Pill */}
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setShowModelPicker(!showModelPicker)}
-                  className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-xs text-neutral-300 font-medium transition"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 font-medium transition border border-neutral-700/60"
                 >
-                  <span>{model === "openai/gpt-4o" ? "GPT-4o" : "Free"}</span>
-                  <span className="text-[10px] text-neutral-500">⌵</span>
+                  <span className="truncate max-w-[90px] sm:max-w-none">{currentModelObj.shortLabel}</span>
+                  <span className="text-[10px] text-neutral-400">⌵</span>
                 </button>
+
+                {/* Popover */}
                 {showModelPicker && (
-                  <div className="absolute right-0 bottom-8 bg-[#1A1A1A] border border-neutral-700 rounded-xl p-1 shadow-2xl z-30 w-48 text-xs">
-                    {[
-                      ["openai/gpt-4o",                      "OpenAI GPT-4o",      "⭐ Recommended"],
-                      ["google/gemini-2.0-flash-exp:free",   "Gemini 2.0 Flash",   "Free"],
-                      ["meta-llama/llama-3.3-70b-instruct:free","Llama 3.3 70B",   "Free"]
-                    ].map(([val, label, badge]) => (
-                      <button
-                        key={val}
-                        onClick={() => { setModel(val); setShowModelPicker(false); }}
-                        className={`w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 flex items-center justify-between transition ${model === val ? "text-white font-semibold" : "text-neutral-400"}`}
-                      >
-                        <span>{label}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded ${model === val ? "bg-blue-900 text-blue-300" : "bg-neutral-800 text-neutral-500"}`}>{badge}</span>
-                      </button>
-                    ))}
+                  <div className="absolute right-0 bottom-full mb-2 bg-[#161616] border border-[#2E2E2E] rounded-2xl p-1.5 shadow-2xl z-50 w-64 text-xs">
+                    <div className="text-[10px] font-semibold text-neutral-500 uppercase px-3 py-1.5">
+                      Select AI Model
+                    </div>
+                    {SUPPORTED_MODELS.map((item) => {
+                      const isSelected = model === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => { setModel(item.id); setShowModelPicker(false); }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#202020] flex items-center justify-between transition ${
+                            isSelected ? "bg-[#1E1E1E] text-white font-medium" : "text-neutral-400"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-blue-400" : "bg-transparent"}`} />
+                            <span className={isSelected ? "text-white font-semibold" : "text-neutral-300"}>
+                              {item.label}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.badgeColor}`}>
+                            {item.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* Send */}
+              {/* Send Button */}
               <button
                 onClick={() => handleSend()}
                 disabled={isStreaming || !input.trim()}
-                className={`${compact ? "w-7 h-7" : "w-8 h-8"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed`}
+                className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-25 disabled:cursor-not-allowed flex-shrink-0`}
+                title="Send message (Enter)"
               >
-                <svg className={`${compact ? "w-3.5 h-3.5" : "w-4 h-4"} transform rotate-90`} fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
                 </svg>
               </button>
@@ -713,7 +763,7 @@
 
       // ── Render ──────────────────────────────────────────────────────────────
       return (
-        <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E5E5E5] font-sans overflow-hidden">
+        <div className="flex flex-col h-full w-full bg-[#0A0A0A] text-[#E5E5E5] font-sans overflow-hidden">
 
           {/* Sidebar */}
           <Sidebar
@@ -727,39 +777,39 @@
           />
 
           {/* ── Top Bar ── */}
-          <header className="px-5 py-3 flex items-center justify-between border-b border-[#161616] z-20 flex-shrink-0">
-            {/* Left: Hamburger + Brand */}
-            <div className="flex items-center gap-3">
+          <header className="px-4 sm:px-6 py-3 flex items-center justify-between border-b border-[#161616] z-20 flex-shrink-0 bg-[#0A0A0A]/80 backdrop-blur-md">
+            {/* Left: Hamburger + Brand Badges */}
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="text-neutral-500 hover:text-white transition"
+                className="text-neutral-400 hover:text-white transition p-1 rounded-lg hover:bg-neutral-800"
                 title="History"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
               </button>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 <a href="https://darglobal.co.uk/" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
                   <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]"/>
                   <span className="font-semibold tracking-wide">DAR GLOBAL</span>
-                  <span className="text-[10px] text-neutral-600 font-normal">LSE:DAR</span>
+                  <span className="text-[10px] text-neutral-600 font-normal hidden sm:inline">LSE:DAR</span>
                 </a>
                 <span className="text-neutral-700">/</span>
                 <a href="https://wasalt.sa/en" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
                   <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"/>
                   <span className="font-semibold tracking-wide">WASALT</span>
-                  <span className="text-[10px] text-neutral-600 font-normal">REGA Certified</span>
+                  <span className="text-[10px] text-neutral-600 font-normal hidden sm:inline">REGA Certified</span>
                 </a>
               </div>
             </div>
 
             {/* Right: Refresh + Tasks */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => window.location.reload()}
-                title="Refresh"
-                className="text-neutral-500 hover:text-white transition"
+                title="Refresh application"
+                className="text-neutral-400 hover:text-white transition p-1.5 rounded-lg hover:bg-neutral-800"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -767,91 +817,122 @@
               </button>
               <button
                 onClick={() => setShowRecruiterModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#161616] border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 hover:text-white transition"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#161616] border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 hover:text-white transition"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>
-                Recruiter Tasks
+                <span className="hidden sm:inline">Recruiter</span> Tasks
               </button>
             </div>
           </header>
 
           {/* ── Main Canvas ── */}
-          <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-4 overflow-hidden relative">
+          <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-3 sm:px-4 overflow-hidden relative">
 
             {messages.length === 0 ? (
               /* Empty state */
-              <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
-                <div className="mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#D4AF37]"/>
-                  <span className="w-2 h-2 rounded-full bg-[#10B981]"/>
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-2 pb-16 sm:pb-20">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]"/>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]"/>
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
+                <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
                   What should we explore?
                 </h1>
-                <p className="text-sm text-neutral-500 mb-8">Dar Global luxury real estate · Wasalt Saudi properties</p>
+                <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">Dar Global luxury real estate · Wasalt Saudi properties</p>
 
-                <div className="w-full max-w-2xl mb-6">
+                <div className="w-full max-w-2xl mb-5 sm:mb-6">
                   <InputBar compact={false} />
                 </div>
 
+                {/* Readymade Prompts */}
                 <div className="flex flex-wrap gap-2 max-w-2xl justify-center">
                   {quickPrompts.map((p, i) => (
                     <button
                       key={i}
-                      onClick={() => handleSend(p)}
-                      className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1C1C1C] border border-[#222222] px-3.5 py-1.5 rounded-full transition"
+                      onClick={() => handleSelectPrompt(p)}
+                      title="Click to paste into input"
+                      className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1E1E1E] border border-[#222222] hover:border-neutral-600 px-3 py-1.5 rounded-full transition text-left flex items-center gap-1.5"
                     >
-                      {p.length > 48 ? p.slice(0, 48) + "…" : p}
+                      <span>💬</span>
+                      <span className="truncate max-w-[280px] sm:max-w-none">{p}</span>
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
               /* Chat feed */
-              <div className="flex-1 overflow-y-auto space-y-6 pt-4 pb-36">
+              <div className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-36 px-1">
                 {messages.map((m, idx) => (
                   <div key={m.id || idx} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                     {m.role === "user" ? (
-                      <div className="max-w-[85%] sm:max-w-xl bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
+                      <div className="max-w-[88%] sm:max-w-xl bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
                         {m.content}
                       </div>
                     ) : (
                       <div className="w-full text-neutral-200">
-                        {/* Markdown content */}
-                        <div
-                          className={`prose-chat ${isStreaming && idx === messages.length - 1 ? "typing-cursor" : ""}`}
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content || "Thinking…") }}
-                        />
-
-                        {/* Entity highlight cards */}
-                        {m.content && <EntityCards text={m.content} />}
-
-                        {/* Citations skeleton → reveal */}
-                        {(m.citLoading || (m.citations && m.citations.length > 0)) && (
-                          <CitationsBlock
-                            citations={m.citations}
-                            loading={!!m.citLoading}
-                          />
-                        )}
-
-                        {/* Action row */}
-                        {m.content && (
-                          <div className="mt-3 flex items-center justify-between text-xs text-neutral-600">
-                            <span>Answered by {model === "openai/gpt-4o" ? "OpenAI GPT-4o" : model} · Grounded on Dar Global & Wasalt</span>
-                            <div className="flex items-center gap-2">
-                              <SpeakButton text={m.content} />
+                        {/* Error state card with retry */}
+                        {m.isError ? (
+                          <div className="p-4 rounded-2xl bg-red-950/20 border border-red-800/40 text-red-200 text-xs sm:text-sm leading-relaxed flex flex-col gap-3">
+                            <div className="flex items-center gap-2 text-red-400 font-semibold">
+                              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                              </svg>
+                              <span>Generation Error</span>
+                            </div>
+                            <p className="text-neutral-300 text-xs">{m.content}</p>
+                            <div>
                               <button
-                                onClick={() => copyToClipboard(m.content)}
-                                className="text-neutral-500 hover:text-white transition flex items-center gap-1"
-                                title="Copy"
+                                onClick={() => handleRetry(m.failedQuery, idx)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
-                                Copy
+                                Retry Response
                               </button>
                             </div>
                           </div>
+                        ) : (
+                          <>
+                            {/* Markdown content */}
+                            <div
+                              className={`prose-chat ${isStreaming && idx === messages.length - 1 ? "typing-cursor" : ""}`}
+                              dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content || "Thinking…") }}
+                            />
+
+                            {/* Entity highlight cards */}
+                            {m.content && <EntityCards text={m.content} />}
+
+                            {/* Citations skeleton → reveal */}
+                            {(m.citLoading || (m.citations && m.citations.length > 0)) && (
+                              <CitationsBlock
+                                citations={m.citations}
+                                loading={!!m.citLoading}
+                              />
+                            )}
+
+                            {/* Action row */}
+                            {m.content && (
+                              <div className="mt-3 flex items-center justify-between text-xs text-neutral-500">
+                                <span className="truncate max-w-[200px] sm:max-w-none">
+                                  Answered by {currentModelObj.label} · Grounded
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <SpeakButton text={m.content} />
+                                  <button
+                                    onClick={() => copyToClipboard(m.content)}
+                                    className="text-neutral-500 hover:text-white transition flex items-center gap-1"
+                                    title="Copy text"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span className="hidden sm:inline">Copy</span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
@@ -861,9 +942,9 @@
               </div>
             )}
 
-            {/* Floating input (in conversation) */}
+            {/* Floating input (when conversation active) */}
             {messages.length > 0 && (
-              <div className="absolute bottom-4 left-0 right-0 px-2">
+              <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 px-2 sm:px-3">
                 <InputBar compact={true} />
               </div>
             )}
@@ -872,7 +953,7 @@
           {/* ── Recruiter Modal ── */}
           {showRecruiterModal && (
             <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setShowRecruiterModal(false)}>
-              <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
