@@ -49,8 +49,10 @@ DEFAULT_MODEL = "openai/gpt-4o"
 
 def load_env_file():
     """Load variables from .env file if present."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     env_path = os.path.join(base_dir, ".env")
+    if not os.path.exists(env_path):
+        env_path = os.path.join(os.getcwd(), ".env")
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:

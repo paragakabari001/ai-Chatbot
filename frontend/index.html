@@ -13,27 +13,26 @@
       theme: {
         extend: {
           colors: {
-            brand: {
+            app: {
+              bg: '#0A0A0A',
+              card: '#161616',
+              border: '#262626',
+              input: '#1A1A1A',
+              bubble: '#1F1F1F',
+              accent: '#3B82F6',
               gold: '#D4AF37',
-              emerald: '#10B981',
-              darkBg: '#0A0D14',
-              surface: '#111724',
-              card: '#161F30'
+              emerald: '#10B981'
             }
           },
           fontFamily: {
-            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-            serif: ['Playfair Display', 'Georgia', 'serif']
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
           }
         }
       }
     }
   </script>
 
-  <!-- Fonts & Libraries -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Markdown Parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <!-- React 18 & Babel Standalone -->
@@ -42,31 +41,116 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0A0D14; }
-    ::-webkit-scrollbar-thumb { background: #1F293D; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    /* Dark Minimalist Theme */
+    body {
+      background-color: #0A0A0A;
+      color: #E5E5E5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0A0A0A; }
+    ::-webkit-scrollbar-thumb { background: #262626; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #333333; }
+
+    /* Typing cursor effect */
     .typing-cursor::after {
       content: '▋';
       display: inline-block;
       vertical-align: middle;
-      color: #D4AF37;
+      color: #FFFFFF;
       animation: blink 0.8s infinite;
-      margin-left: 2px;
+      margin-left: 3px;
     }
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
+
+    /* Markdown Styling */
+    .prose-chat h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-top: 1.25rem;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+    .prose-chat h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .prose-chat h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+    }
+    .prose-chat h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #F3F4F6;
+      margin-top: 0.85rem;
+      margin-bottom: 0.35rem;
+    }
+    .prose-chat p {
+      margin-bottom: 0.85rem;
+      line-height: 1.65;
+      color: #D4D4D4;
+      font-size: 0.9375rem;
+    }
+    .prose-chat ul {
+      list-style-type: disc;
+      padding-left: 1.4rem;
+      margin-bottom: 0.9rem;
+      color: #D4D4D4;
+    }
+    .prose-chat ol {
+      list-style-type: decimal;
+      padding-left: 1.4rem;
+      margin-bottom: 0.9rem;
+      color: #D4D4D4;
+    }
+    .prose-chat li {
+      margin-bottom: 0.35rem;
+      line-height: 1.6;
+      font-size: 0.9375rem;
+    }
+    .prose-chat strong {
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .prose-chat a {
+      color: #60A5FA;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .prose-chat code {
+      background-color: #1A1A1A;
+      color: #E5E5E5;
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.25rem;
+      font-size: 0.85em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
   </style>
 </head>
-<body class="bg-[#0A0D14] text-slate-100 min-h-screen font-sans selection:bg-[#D4AF37] selection:text-black antialiased">
-  <div id="root"></div>
+<body class="bg-[#0A0A0A] text-[#E5E5E5] min-h-screen flex flex-col antialiased">
+  <div id="root" class="flex-1 flex flex-col h-screen"></div>
 
   <!-- React 18 Application Script -->
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    });
 
     function App() {
       const [messages, setMessages] = useState([]);
@@ -74,13 +158,15 @@
       const [isStreaming, setIsStreaming] = useState(false);
       const [model, setModel] = useState("openai/gpt-4o");
       const [showRecruiterModal, setShowRecruiterModal] = useState(false);
+      const [showModelPicker, setShowModelPicker] = useState(false);
       const messagesEndRef = useRef(null);
+      const chatInputRef = useRef(null);
 
       const quickPrompts = [
-        { title: "💎 Dar Global Projects", prompt: "What are Dar Global's top luxury branded residential projects and international locations?" },
-        { title: "🏙️ Wasalt Riyadh Real Estate", prompt: "How do I search, rent, or buy apartments and villas in Riyadh on Wasalt?" },
-        { title: "📜 7-Day Token Policy", prompt: "Explain Dar Global's 7-day token reservation policy and purchase agreement terms." },
-        { title: "⚖️ Saudi REGA & Ejar Laws", prompt: "What are Saudi REGA regulations, Fal licensing, and the Ejar network on Wasalt?" },
+        "What are Dar Global's top luxury branded residential projects and international locations?",
+        "How do I search, rent, or buy apartments and villas in Riyadh on Wasalt?",
+        "Explain Dar Global's 7-day token reservation policy and purchase agreement terms.",
+        "What are Saudi REGA regulations, Fal licensing, and the Ejar network on Wasalt?"
       ];
 
       const scrollToBottom = () => {
@@ -102,12 +188,14 @@
         setInput("");
         setIsStreaming(true);
 
+        if (chatInputRef.current) {
+          chatInputRef.current.style.height = "auto";
+        }
+
         try {
           const response = await fetch("/api/chat", {
             method: "POST",
-            headers: { 
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: query, model: model, top_k: 4 }),
           });
 
@@ -185,208 +273,314 @@
       };
 
       return (
-        <div className="flex flex-col h-screen bg-[#0A0D14] text-slate-100 font-sans selection:bg-[#D4AF37] selection:text-black">
-          {/* Top Header */}
-          <header className="border-b border-slate-800/80 bg-[#101522]/90 backdrop-blur-md px-4 py-3 sticky top-0 z-30 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a href="https://darglobal.co.uk/" target="_blank" rel="noopener" className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-[#D4AF37]/40 hover:border-[#D4AF37] text-xs font-bold transition">
-                <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]"></span>
-                <span className="text-slate-100">DAR GLOBAL</span>
-                <span className="text-[10px] text-[#D4AF37] font-semibold bg-[#D4AF37]/15 px-1.5 py-0.5 rounded">LSE: DAR</span>
+        <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E5E5E5] font-sans">
+          
+          {/* Top Bar - Minimalist */}
+          <header className="px-6 py-3.5 flex items-center justify-between border-b border-transparent z-20">
+            {/* Left: Brand Badges */}
+            <div className="flex items-center gap-2.5">
+              <a href="https://darglobal.co.uk/" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
+                <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]"></span>
+                <span className="font-semibold tracking-wide">DAR GLOBAL</span>
+                <span className="text-[10px] text-neutral-500 font-normal">LSE: DAR</span>
               </a>
-              <span className="text-slate-600 text-xs hidden sm:inline">✕</span>
-              <a href="https://wasalt.sa/en" target="_blank" rel="noopener" className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-[#10B981]/40 hover:border-[#10B981] text-xs font-bold transition">
-                <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]"></span>
-                <span className="text-slate-100">WASALT</span>
-                <span className="text-[10px] text-[#10B981] font-semibold bg-[#10B981]/15 px-1.5 py-0.5 rounded hidden sm:inline">REGA Certified</span>
+              <span className="text-neutral-700 text-xs">/</span>
+              <a href="https://wasalt.sa/en" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"></span>
+                <span className="font-semibold tracking-wide">WASALT</span>
+                <span className="text-[10px] text-neutral-500 font-normal">REGA Certified</span>
               </a>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Right: Status & Recruiter Task Pill */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowRecruiterModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-medium transition"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#161616] border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 hover:text-white transition"
               >
-                <span>📋</span>
-                <span className="font-semibold">Recruiter Tasks</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>Recruiter Tasks</span>
               </button>
 
-              <select
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                className="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1 text-xs outline-none cursor-pointer"
-              >
-                <option value="openai/gpt-4o">OpenAI GPT-4o (Active)</option>
-                <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (Free)</option>
-                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free)</option>
-              </select>
+              <div className="flex items-center gap-2 text-xs text-neutral-400">
+                <span className="w-2 h-2 rounded-full bg-white/20"></span>
+                <span>Enterprise AI Advisor</span>
+              </div>
             </div>
           </header>
 
-          {/* Chat Container */}
-          <main className="flex-1 max-w-4xl w-full mx-auto flex flex-col p-3 sm:p-5 overflow-hidden">
+          {/* Main Conversational Canvas */}
+          <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-4 overflow-hidden relative">
+            
             {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                <div className="inline-block px-3.5 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-semibold uppercase tracking-wider mb-3">
-                  Enterprise AI Real Estate Advisor
-                </div>
-                <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white mb-2 tracking-tight">
-                  Luxury Global Assets & Saudi Market Intelligence
+              /* Minimalist Empty State: "What should we explore?" */
+              <div className="flex-1 flex flex-col items-center justify-center text-center pb-24">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8 tracking-tight">
+                  What should we explore?
                 </h1>
-                <p className="text-slate-400 text-xs sm:text-sm max-w-lg mb-8 leading-relaxed">
-                  Strictly grounded in publicly available information from 
-                  <strong className="text-[#D4AF37]"> Dar Global PLC</strong> and 
-                  <strong className="text-[#10B981]"> Wasalt KSA</strong>.
-                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl text-left">
-                  {quickPrompts.map((q, idx) => (
+                {/* Center Input Capsule */}
+                <div className="w-full max-w-2xl bg-[#161616] border border-[#262626] rounded-3xl p-4 shadow-2xl focus-within:border-neutral-600 transition-all text-left">
+                  <textarea
+                    ref={chatInputRef}
+                    rows="2"
+                    value={input}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      e.target.style.height = "auto";
+                      e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Ask anything about Dar Global luxury developments or Wasalt properties..."
+                    className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none"
+                  />
+
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#222222]">
+                    <div className="flex items-center gap-2">
+                      <button className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center text-base transition">
+                        +
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Model Selector Pill */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowModelPicker(!showModelPicker)}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-xs text-neutral-300 font-medium transition"
+                        >
+                          <span>{model === "openai/gpt-4o" ? "GPT-4o (Active)" : "Free Model"}</span>
+                          <span className="text-[10px] text-neutral-500">⌵</span>
+                        </button>
+
+                        {showModelPicker && (
+                          <div className="absolute right-0 bottom-8 bg-[#1A1A1A] border border-neutral-700 rounded-xl p-1 shadow-2xl z-30 w-44 text-xs">
+                            <button
+                              onClick={() => { setModel("openai/gpt-4o"); setShowModelPicker(false); }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-white font-medium"
+                            >
+                              OpenAI GPT-4o
+                            </button>
+                            <button
+                              onClick={() => { setModel("google/gemini-2.0-flash-exp:free"); setShowModelPicker(false); }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300"
+                            >
+                              Gemini 2.0 Flash
+                            </button>
+                            <button
+                              onClick={() => { setModel("meta-llama/llama-3.3-70b-instruct:free"); setShowModelPicker(false); }}
+                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300"
+                            >
+                              Llama 3.3 70B
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mic icon */}
+                      <button className="text-neutral-400 hover:text-white transition">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                      </button>
+
+                      {/* Send button */}
+                      <button
+                        onClick={() => handleSend()}
+                        disabled={isStreaming || !input.trim()}
+                        className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subtle Suggestion Chips */}
+                <div className="flex flex-wrap gap-2 mt-6 max-w-2xl justify-center">
+                  {quickPrompts.map((p, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleSend(q.prompt)}
-                      className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-[#D4AF37]/50 hover:bg-slate-800 transition text-xs group"
+                      onClick={() => handleSend(p)}
+                      className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1C1C1C] border border-[#222222] px-3.5 py-1.5 rounded-full transition"
                     >
-                      <div className="font-semibold text-white group-hover:text-[#D4AF37]">{q.title}</div>
-                      <div className="text-slate-400 text-[11px] truncate mt-1">{q.prompt}</div>
+                      {p.length > 45 ? p.slice(0, 45) + "..." : p}
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              /* Active Conversational Feed */
+              <div className="flex-1 overflow-y-auto space-y-6 pt-4 pb-32 pr-2">
                 {messages.map((m, idx) => (
-                  <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[90%] sm:max-w-2xl rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${
-                        m.role === "user"
-                          ? "bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 text-white rounded-tr-sm"
-                          : "bg-[#141A28] border border-slate-800 text-slate-200 rounded-tl-sm shadow-xl"
-                      }`}
-                    >
-                      <div 
-                        className={`prose prose-invert max-w-none text-xs sm:text-sm ${isStreaming && idx === messages.length - 1 ? "typing-cursor" : ""}`}
-                        dangerouslySetInnerHTML={{ __html: marked.parse(m.content || "Thinking...") }}
-                      />
+                  <div key={idx} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {m.role === "user" ? (
+                      /* User message: Small rounded dark pill on right */
+                      <div className="max-w-[85%] sm:max-w-xl bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
+                        {m.content}
+                      </div>
+                    ) : (
+                      /* Assistant message: Borderless, rendered directly on canvas with rich markdown */
+                      <div className="w-full text-neutral-200">
+                        <div
+                          className={`prose-chat ${isStreaming && idx === messages.length - 1 ? "typing-cursor" : ""}`}
+                          dangerouslySetInnerHTML={{ __html: marked.parse(m.content || "Thinking...") }}
+                        />
 
-                      {/* Interactive Entity Highlight Cards */}
-                      {m.role === "assistant" && m.content && (
-                        <EntityCards text={m.content} />
-                      )}
+                        {/* Interactive Entity Highlight Cards */}
+                        {m.content && <EntityCards text={m.content} />}
 
-                      {/* Citations Shelf */}
-                      {m.citations && m.citations.length > 0 && (
-                        <div className="mt-3.5 pt-2.5 border-t border-slate-800">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                            Verified Source Citations:
+                        {/* Source Citations */}
+                        {m.citations && m.citations.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-[#1C1C1C]">
+                            <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+                              Sources & Knowledge Grounding
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {m.citations.map((c, cIdx) => (
+                                <a
+                                  key={cIdx}
+                                  href={c.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141414] border border-[#222222] hover:border-neutral-600 text-xs text-neutral-300 hover:text-white transition"
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${c.source === 'Dar Global' ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`}></span>
+                                  <span className="font-semibold text-white">{c.source}:</span>
+                                  <span className="truncate max-w-[160px] text-neutral-400">{c.title}</span>
+                                </a>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {m.citations.map((c, cIdx) => (
-                              <a
-                                key={cIdx}
-                                href={c.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-[#D4AF37] text-[11px] text-slate-300 transition"
-                              >
-                                <span className={`font-bold text-[9px] uppercase px-1 rounded ${c.source === 'Dar Global' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-[#10B981]/20 text-[#10B981]'}`}>{c.source}</span>
-                                <span className="truncate max-w-[200px]">{c.title}</span>
-                              </a>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                        )}
 
-                      {m.role === "assistant" && m.content && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
-                          <span>100% Grounded • OpenRouter</span>
-                          <button
-                            onClick={() => copyToClipboard(m.content)}
-                            className="hover:text-slate-300 transition"
-                          >
-                            📋 Copy Response
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                        {/* Action buttons (Copy) */}
+                        {m.content && (
+                          <div className="mt-3 flex items-center justify-between text-xs text-neutral-500">
+                            <span>Answered by OpenAI GPT-4o • Grounded on Dar Global & Wasalt</span>
+                            <button
+                              onClick={() => copyToClipboard(m.content)}
+                              className="text-neutral-400 hover:text-white transition flex items-center gap-1"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                              </svg>
+                              <span>Copy</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
             )}
 
-            {/* Input Bar */}
-            <div className="mt-3 pt-2 border-t border-slate-800">
-              <div className="flex items-center gap-2 bg-[#121722] border border-slate-800 focus-within:border-[#D4AF37] rounded-xl px-3 py-2 shadow-inner">
-                <textarea
-                  rows="1"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder="Ask about DaVinci Pagani, AIDA Oman, Wasalt Riyadh villas, REGA licenses..."
-                  className="flex-1 bg-transparent text-slate-100 text-xs sm:text-sm outline-none resize-none max-h-24"
-                />
-                {messages.length > 0 && (
-                  <button
-                    onClick={() => setMessages([])}
-                    className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1"
-                    title="Clear Conversation"
-                  >
-                    Clear
-                  </button>
-                )}
-                <button
-                  onClick={() => handleSend()}
-                  disabled={isStreaming || !input.trim()}
-                  className="bg-[#D4AF37] text-black font-bold p-2 rounded-lg hover:bg-yellow-400 disabled:opacity-40 transition"
-                >
-                  <svg className="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                  </svg>
-                </button>
+            {/* Floating Bottom Input Capsule (When in chat conversation) */}
+            {messages.length > 0 && (
+              <div className="absolute bottom-4 left-0 right-0 px-4">
+                <div className="max-w-3xl mx-auto bg-[#161616] border border-[#262626] rounded-3xl p-3.5 shadow-2xl focus-within:border-neutral-600 transition-all">
+                  <textarea
+                    ref={chatInputRef}
+                    rows="1"
+                    value={input}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      e.target.style.height = "auto";
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Ask anything about Dar Global or Wasalt..."
+                    className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-28"
+                  />
+
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#222222]">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setMessages([])}
+                        className="text-xs text-neutral-500 hover:text-neutral-300 px-2 py-0.5 rounded transition"
+                        title="Clear Conversation"
+                      >
+                        Clear
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setShowModelPicker(!showModelPicker)}
+                        className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-800 text-xs text-neutral-300 font-medium"
+                      >
+                        <span>{model === "openai/gpt-4o" ? "GPT-4o" : "Free"}</span>
+                        <span className="text-[10px] text-neutral-500">⌵</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleSend()}
+                        disabled={isStreaming || !input.trim()}
+                        className="w-7 h-7 rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
           </main>
 
           {/* Recruiter Evaluation Modal */}
           {showRecruiterModal && (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-[#121722] border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+              <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+                <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>📋</span> AI Full-Stack Assignment Checklist
+                      <span>📋</span> AI Full-Stack Assignment Verification
                     </h3>
-                    <p className="text-[11px] text-[#D4AF37]">Candidate: PARAG AKABARI</p>
+                    <p className="text-xs text-neutral-400">Candidate: <strong className="text-white">PARAG AKABARI</strong></p>
                   </div>
-                  <button onClick={() => setShowRecruiterModal(false)} className="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+                  <button onClick={() => setShowRecruiterModal(false)} className="text-neutral-400 hover:text-white text-xl font-bold">&times;</button>
                 </div>
-                <div className="mt-4 space-y-2.5 text-xs text-slate-300">
-                  <div className="p-3 rounded-lg bg-slate-900 border border-emerald-500/30">
-                    <strong className="text-emerald-400">1. Ethical Data Collection:</strong> 59 verified records gathered respecting Wasalt robots.txt (bypassing /search).
+
+                <div className="mt-4 space-y-2.5 text-xs text-neutral-300">
+                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                    <strong className="text-emerald-400">1. Data Collection & Ethics:</strong> 59 grounded records from Dar Global & Wasalt, strictly respecting Wasalt's robots.txt access rules (avoiding /search).
                   </div>
-                  <div className="p-3 rounded-lg bg-slate-900 border border-emerald-500/30">
-                    <strong className="text-emerald-400">2. Grounded Chatbot:</strong> BM25 lexical ranking engine with zero hallucination guarantee.
+                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                    <strong className="text-emerald-400">2. Grounded Chatbot:</strong> BM25 lexical ranking engine + strict zero-hallucination prompt boundaries.
                   </div>
-                  <div className="p-3 rounded-lg bg-slate-900 border border-emerald-500/30">
-                    <strong className="text-emerald-400">3. OpenRouter Model:</strong> Configured for OpenAI GPT-4o & free models with token streaming.
+                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                    <strong className="text-emerald-400">3. OpenRouter Free & GPT-4o:</strong> Token streaming with user key and deterministic fallback.
                   </div>
-                  <div className="p-3 rounded-lg bg-slate-900 border border-emerald-500/30">
-                    <strong className="text-emerald-400">4. Docker Container:</strong> Multi-stage Dockerfile running non-root appuser on port 8000.
+                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                    <strong className="text-emerald-400">4. Docker Container:</strong> Multi-stage build running non-root appuser on port 8000.
                   </div>
-                  <div className="p-3 rounded-lg bg-slate-900 border border-emerald-500/30">
-                    <strong className="text-emerald-400">5. Live Deployment:</strong> Live HTTPS URL for direct testing.
+                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                    <strong className="text-emerald-400">5. Live Deployment:</strong> Verified HTTPS URL for direct evaluation.
                   </div>
                 </div>
+
                 <div className="mt-5 flex justify-end">
                   <button
                     onClick={() => setShowRecruiterModal(false)}
-                    className="px-4 py-1.5 rounded-lg bg-[#D4AF37] text-black font-semibold text-xs hover:bg-yellow-400 transition"
+                    className="px-4 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition"
                   >
                     Close
                   </button>
@@ -447,13 +641,13 @@
       return (
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {cards.slice(0, 2).map((c, idx) => (
-            <div key={idx} className="p-3 rounded-xl bg-slate-900/90 border border-slate-700/60 text-xs shadow-sm">
+            <div key={idx} className="p-3 rounded-xl bg-[#141414] border border-[#262626] text-xs">
               <div className="flex items-center justify-between font-bold text-white mb-1">
                 <span>{c.title}</span>
-                <span className="text-[9px] px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded font-semibold">{c.partner}</span>
+                <span className="text-[10px] px-2 py-0.5 bg-neutral-800 text-neutral-300 rounded font-medium">{c.partner}</span>
               </div>
-              <div className="text-slate-400 text-[10px]">📍 {c.loc}</div>
-              <div className="text-slate-300 text-[11px] mt-1 leading-snug">{c.desc}</div>
+              <div className="text-neutral-500 text-[11px]">📍 {c.loc}</div>
+              <div className="text-neutral-400 text-xs mt-1.5 leading-snug">{c.desc}</div>
             </div>
           ))}
         </div>
