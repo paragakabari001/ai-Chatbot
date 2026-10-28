@@ -26,13 +26,12 @@ const SUPPORTED_MODELS = [
   }
 ];
 
-// ── Markdown config ──────────────────────────────────────────────────────────
+// ── Markdown Parser Configuration ────────────────────────────────────────────
 marked.setOptions({ breaks: true, gfm: true });
 
 function renderMarkdown(raw) {
   if (!raw) return "";
   let html = marked.parse(raw);
-  // Add external link icon before every external href
   html = html.replace(
     /<a\s+([^>]*href=["']https?:\/\/[^"']+["'][^>]*)>/gi,
     (match, attrs) => `<a ${attrs}><span class="ext-icon">🔗</span>`
@@ -40,7 +39,7 @@ function renderMarkdown(raw) {
   return html;
 }
 
-// ── LocalStorage chat history helpers ────────────────────────────────────────
+// ── LocalStorage Chat History Helpers ────────────────────────────────────────
 const LS_KEY = "dg_wasalt_history";
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
@@ -53,7 +52,7 @@ function newSession() {
   return { id: Date.now().toString(), title: "New Chat", messages: [], ts: Date.now() };
 }
 
-// ── Strip markdown to plain text for TTS ─────────────────────────────────────
+// ── Text-to-Speech Helper ───────────────────────────────────────────────────
 function stripMarkdown(text) {
   return text
     .replace(/!\[.*?\]\(.*?\)/g, "")
@@ -131,7 +130,26 @@ function CopyButton({ text }) {
   );
 }
 
-// ── Citations with skeleton → reveal ─────────────────────────────────────────
+// ── Thinking State with Live Timer ───────────────────────────────────────────
+function ThinkingState() {
+  const [elapsed, setElapsed] = useState(1);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsed(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 py-1 text-neutral-400 text-xs animate-appear">
+      <span className="w-3 h-3 rounded-full border-2 border-neutral-600 border-t-white animate-spin"></span>
+      <span className="text-neutral-400 font-normal">Working for {elapsed}s</span>
+    </div>
+  );
+}
+
+// ── Citations with Skeleton Loader ───────────────────────────────────────────
 function CitationsBlock({ citations, loading }) {
   const [revealed, setRevealed] = useState(false);
 
@@ -229,7 +247,6 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, isOpen, onClo
         className="relative w-72 max-w-[85vw] h-full bg-[#0D0D0D] border-r border-[#1E1E1E] flex flex-col sidebar-enter"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="p-4 border-b border-[#1E1E1E] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -243,7 +260,6 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, isOpen, onClo
           </button>
         </div>
 
-        {/* New Chat Button */}
         <div className="p-3">
           <button
             onClick={onNew}
@@ -254,7 +270,6 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, isOpen, onClo
           </button>
         </div>
 
-        {/* Sessions list */}
         <div className="flex-1 overflow-y-auto px-3 py-1 space-y-1">
           {sessions.slice().reverse().map(s => {
             const isSelected = s.id === currentId;
@@ -282,24 +297,23 @@ function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, isOpen, onClo
           })}
         </div>
 
-        {/* Footer */}
         <div className="px-4 py-3 border-t border-[#1E1E1E] text-[10px] text-neutral-600">
           Dar Global & Wasalt AI Advisor
         </div>
       </div>
-      {/* Backdrop */}
       <div className="flex-1 bg-black/50 backdrop-blur-sm" />
     </div>
   );
 }
 
-// ── Input Bar (Top-level component: preserves input focus on state change) ─────
+// ── Top-Level Input Bar Component ────────────────────────────────────────────
 function InputBar({
   compact,
   input,
   setInput,
   isStreaming,
   handleSend,
+  handleStopStreaming,
   handleNewChat,
   chatInputRef,
   popoverRef,
@@ -345,13 +359,8 @@ function InputBar({
           </button>
         </div>
 
-        {/* Right: Model selector + Send */}
+        {/* Right: Model selector + Send/Stop Button */}
         <div className="flex items-center gap-2" ref={popoverRef}>
-          {/* Spinner when streaming */}
-          {isStreaming && (
-            <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin mr-1" title="Generating response..."/>
-          )}
-
           {/* Model Selector Pill */}
           <div className="relative">
             <button
@@ -363,7 +372,7 @@ function InputBar({
               <span className="text-[10px] text-neutral-400">⌵</span>
             </button>
 
-            {/* Popover */}
+            {/* Model Selector Popover */}
             {showModelPicker && (
               <div className="absolute right-0 bottom-full mb-2 bg-[#161616] border border-[#2E2E2E] rounded-2xl p-1.5 shadow-2xl z-50 w-64 text-xs">
                 <div className="text-[10px] font-semibold text-neutral-500 uppercase px-3 py-1.5">
@@ -396,27 +405,37 @@ function InputBar({
             )}
           </div>
 
-          {/* Send Button */}
-          <button
-            type="button"
-            onClick={() => handleSend()}
-            disabled={isStreaming || !input.trim()}
-            className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-25 disabled:cursor-not-allowed flex-shrink-0`}
-            title="Send message (Enter)"
-          >
-            <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-            </svg>
-          </button>
+          {/* Send / Stop Streaming Button */}
+          {isStreaming ? (
+            <button
+              type="button"
+              onClick={handleStopStreaming}
+              className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition flex-shrink-0 shadow-lg`}
+              title="Stop generating"
+            >
+              <div className="w-3 h-3 bg-black rounded-[2px]" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleSend()}
+              disabled={!input.trim()}
+              className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-25 disabled:cursor-not-allowed flex-shrink-0`}
+              title="Send message (Enter)"
+            >
+              <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ── Main App ──────────────────────────────────────────────────────────────────
+// ── Main App Component ───────────────────────────────────────────────────────
 export default function App() {
-  // Sessions & current
   const [sessions, setSessions]         = useState(() => {
     const h = loadHistory();
     return h.length > 0 ? h : [newSession()];
@@ -431,7 +450,6 @@ export default function App() {
   );
   const messages = currentSession?.messages || [];
 
-  // UI state
   const [input, setInput]               = useState("");
   const [isStreaming, setIsStreaming]    = useState(false);
   const [model, setModel]               = useState("openai/gpt-4o");
@@ -439,20 +457,26 @@ export default function App() {
   const [showRecruiterModal, setShowRecruiterModal] = useState(false);
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [citationsLoading, setCitationsLoading] = useState(false);
-
-  // TTS speaking state
   const [speakingMsgId, setSpeakingMsgId] = useState(null);
 
-  const messagesEndRef = useRef(null);
-  const chatInputRef   = useRef(null);
-  const popoverRef     = useRef(null);
+  // User message editing state
+  const [editingIdx, setEditingIdx]     = useState(null);
+  const [editInput, setEditInput]       = useState("");
 
-  // Current selected model object
+  // Smart Auto-Scroll refs & state
+  const chatContainerRef   = useRef(null);
+  const isUserAtBottomRef  = useRef(true);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+
+  const chatInputRef       = useRef(null);
+  const popoverRef         = useRef(null);
+  const abortControllerRef = useRef(null);
+
   const currentModelObj = useMemo(() => {
     return SUPPORTED_MODELS.find(m => m.id === model) || SUPPORTED_MODELS[0];
   }, [model]);
 
-  // Click outside to close model popover
+  // Handle outside click to dismiss model picker
   useEffect(() => {
     function handleClickOutside(e) {
       if (popoverRef.current && !popoverRef.current.contains(e.target)) {
@@ -469,15 +493,36 @@ export default function App() {
     };
   }, [showModelPicker]);
 
-  // Persist sessions to localStorage
+  // Persist sessions
   useEffect(() => { saveHistory(sessions); }, [sessions]);
 
-  // Scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isStreaming]);
+  // Smart auto-scroll: checks if user is near bottom
+  const handleScroll = useCallback(() => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 80;
+    isUserAtBottomRef.current = atBottom;
+    setShowScrollBottom(!atBottom && messages.length > 0);
+  }, [messages.length]);
 
-  // Helper to update active session
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "auto"
+      });
+      isUserAtBottomRef.current = true;
+      setShowScrollBottom(false);
+    }
+  }, []);
+
+  // Only auto-scroll on new message/token if user is at bottom
+  useEffect(() => {
+    if (isUserAtBottomRef.current) {
+      scrollToBottom(true);
+    }
+  }, [messages, isStreaming, scrollToBottom]);
+
   const updateSession = (sessId, updater) => {
     setSessions(prev => prev.map(s => {
       if (s.id !== sessId) return s;
@@ -492,7 +537,6 @@ export default function App() {
     "What are Saudi REGA regulations on Wasalt?"
   ];
 
-  // Handle clicking a readymade prompt: paste into input + focus
   const handleSelectPrompt = (promptText) => {
     setInput(promptText);
     if (chatInputRef.current) {
@@ -508,11 +552,16 @@ export default function App() {
 
   // ── New Chat ──────────────────────────────────────────────────────────────
   const handleNewChat = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     const s = newSession();
     setSessions(prev => [...prev, s]);
     setCurrentId(s.id);
     setInput("");
     setSidebarOpen(false);
+    setIsStreaming(false);
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     setSpeakingMsgId(null);
   }, []);
@@ -531,7 +580,17 @@ export default function App() {
     });
   }, [currentId]);
 
-  // ── Speech Synthesis with line highlight ──────────────────────────────────
+  // ── Stop Streaming ────────────────────────────────────────────────────────
+  const handleStopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsStreaming(false);
+    setCitationsLoading(false);
+  }, []);
+
+  // ── Speech Synthesis ──────────────────────────────────────────────────────
   const toggleSpeech = useCallback((msgId, fullText) => {
     const synth = window.speechSynthesis;
     if (!synth) return;
@@ -553,7 +612,7 @@ export default function App() {
     setSpeakingMsgId(msgId);
   }, [speakingMsgId]);
 
-  // ── Send message (supports retry) ──────────────────────────────────────────
+  // ── Send message ──────────────────────────────────────────────────────────
   const handleSend = async (textToSend) => {
     const query = (textToSend || input).trim();
     if (!query || isStreaming) return;
@@ -570,14 +629,20 @@ export default function App() {
     setInput("");
     setIsStreaming(true);
     setCitationsLoading(true);
+    isUserAtBottomRef.current = true;
+    scrollToBottom(true);
 
     if (chatInputRef.current) chatInputRef.current.style.height = "auto";
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: query, model, top_k: 4 })
+        body: JSON.stringify({ message: query, model, top_k: 4 }),
+        signal: controller.signal
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -613,7 +678,7 @@ export default function App() {
             try {
               const parsed = JSON.parse(dataStr);
               if (parsed.token) {
-                await sleep(45);
+                await sleep(40);
                 updateSession(sessId, s => ({
                   messages: s.messages.map(m =>
                     m.id === msgId ? { ...m, content: (m.content || "") + parsed.token } : m
@@ -622,7 +687,7 @@ export default function App() {
               }
             } catch {
               if (dataStr) {
-                await sleep(45);
+                await sleep(40);
                 updateSession(sessId, s => ({
                   messages: s.messages.map(m =>
                     m.id === msgId ? { ...m, content: (m.content || "") + dataStr } : m
@@ -634,6 +699,10 @@ export default function App() {
         }
       }
     } catch (err) {
+      if (err.name === "AbortError") {
+        // Stopped by user cleanly
+        return;
+      }
       updateSession(sessId, s => ({
         messages: s.messages.map(m =>
           m.id === msgId ? {
@@ -646,6 +715,7 @@ export default function App() {
         )
       }));
     } finally {
+      abortControllerRef.current = null;
       setIsStreaming(false);
       setCitationsLoading(false);
       updateSession(sessId, s => ({
@@ -664,7 +734,18 @@ export default function App() {
     handleSend(failedQuery);
   };
 
-  // ── Input Bar helper ─────────────────────────────────────────────────────
+  // ── Edit & Resubmit previous user message ──────────────────────────────────
+  const handleSaveEdit = (idx) => {
+    const newQuery = editInput.trim();
+    if (!newQuery || isStreaming) return;
+    setEditingIdx(null);
+    updateSession(currentId, s => ({
+      messages: s.messages.slice(0, idx)
+    }));
+    handleSend(newQuery);
+  };
+
+  // ── Input Bar helper ──────────────────────────────────────────────────────
   const renderInputBar = (compact) => (
     <InputBar
       compact={compact}
@@ -672,6 +753,7 @@ export default function App() {
       setInput={setInput}
       isStreaming={isStreaming}
       handleSend={handleSend}
+      handleStopStreaming={handleStopStreaming}
       handleNewChat={handleNewChat}
       chatInputRef={chatInputRef}
       popoverRef={popoverRef}
@@ -696,11 +778,11 @@ export default function App() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* ── Top Bar ── */}
+      {/* Top Header */}
       <header className="px-4 sm:px-6 py-3 flex items-center justify-between border-b border-[#161616] z-20 flex-shrink-0 bg-[#0A0A0A]/80 backdrop-blur-md">
-        {/* Left: Hamburger + Brand Badges */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
             className="text-neutral-400 hover:text-white transition p-1 rounded-lg hover:bg-neutral-800"
             title="History"
@@ -724,9 +806,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right: Actions */}
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => window.location.reload()}
             title="Refresh application"
             className="text-neutral-400 hover:text-white transition p-1.5 rounded-lg hover:bg-neutral-800"
@@ -736,6 +818,7 @@ export default function App() {
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => setShowRecruiterModal(true)}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#161616] border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 hover:text-white transition"
           >
@@ -745,7 +828,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Main Canvas ── */}
+      {/* Main Canvas */}
       <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-3 sm:px-4 overflow-hidden relative">
         {messages.length === 0 ? (
           /* Empty state */
@@ -780,8 +863,12 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* Chat feed */
-          <div className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-36 px-1">
+          /* Chat Feed with Smart Scroll Container */
+          <div
+            ref={chatContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-36 px-1"
+          >
             {messages.map((m, idx) => {
               const isCurrentStreaming = isStreaming && idx === messages.length - 1;
               const isBeingRead = speakingMsgId === m.id;
@@ -789,12 +876,56 @@ export default function App() {
               return (
                 <div key={m.id || idx} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   {m.role === "user" ? (
-                    <div className="max-w-[88%] sm:max-w-xl bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
-                      {m.content}
-                    </div>
+                    editingIdx === idx ? (
+                      /* Inline Message Edit Box */
+                      <div className="w-full max-w-[88%] sm:max-w-xl bg-[#1C1C1C] border border-blue-500/60 rounded-2xl p-3 flex flex-col gap-2.5 shadow-lg">
+                        <textarea
+                          value={editInput}
+                          onChange={(e) => setEditInput(e.target.value)}
+                          className="w-full bg-transparent text-white text-sm outline-none resize-none leading-relaxed"
+                          rows={2}
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setEditingIdx(null)}
+                            className="px-2.5 py-1 rounded-md text-neutral-400 hover:text-white transition"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEdit(idx)}
+                            className="px-3 py-1 rounded-md bg-white text-black font-semibold hover:bg-neutral-200 transition"
+                          >
+                            Save & Submit
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* User Message Bubble with Edit Button */
+                      <div className="group relative max-w-[88%] sm:max-w-xl">
+                        <div className="bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
+                          {m.content}
+                        </div>
+                        {!isStreaming && (
+                          <button
+                            type="button"
+                            onClick={() => { setEditingIdx(idx); setEditInput(m.content); }}
+                            className="opacity-0 group-hover:opacity-100 transition absolute -left-7 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-white rounded"
+                            title="Edit message"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    )
                   ) : (
+                    /* Assistant Message */
                     <div className="w-full text-neutral-200">
-                      {/* Error state card with retry */}
                       {m.isError ? (
                         <div className="p-4 rounded-2xl bg-red-950/20 border border-red-800/40 text-red-200 text-xs sm:text-sm leading-relaxed flex flex-col gap-3">
                           <div className="flex items-center gap-2 text-red-400 font-semibold">
@@ -819,7 +950,7 @@ export default function App() {
                         </div>
                       ) : (
                         <>
-                          {/* Audio listening indicator when read aloud */}
+                          {/* Real-time speech audio feedback */}
                           {isBeingRead && (
                             <div className="flex items-center gap-2 mb-2.5 px-3 py-1 rounded-full bg-blue-950/40 border border-blue-800/40 text-blue-400 text-xs w-fit animate-appear">
                               <div className="flex items-center gap-0.5 h-3">
@@ -832,13 +963,17 @@ export default function App() {
                             </div>
                           )}
 
-                          {/* Markdown content with reading highlight */}
-                          <div
-                            className={`prose-chat transition-all duration-300 ${
-                              isCurrentStreaming ? "typing-cursor" : ""
-                            } ${isBeingRead ? "reading-highlight" : ""}`}
-                            dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content || "Thinking…") }}
-                          />
+                          {/* Markdown streaming response OR Live Thinking state */}
+                          {m.content ? (
+                            <div
+                              className={`prose-chat transition-all duration-300 ${
+                                isCurrentStreaming ? "typing-cursor" : ""
+                              } ${isBeingRead ? "reading-highlight" : ""}`}
+                              dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }}
+                            />
+                          ) : (
+                            <ThinkingState />
+                          )}
 
                           {/* Entity highlight cards: appear ONLY after streaming completes */}
                           {!isCurrentStreaming && m.content && <EntityCards text={m.content} />}
@@ -875,11 +1010,24 @@ export default function App() {
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
           </div>
         )}
 
-        {/* Floating input (when conversation active) */}
+        {/* Floating "Scroll to bottom" button when user scrolls up */}
+        {showScrollBottom && (
+          <button
+            type="button"
+            onClick={() => scrollToBottom(true)}
+            className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#181818] border border-neutral-700 text-xs text-neutral-200 hover:text-white shadow-2xl hover:border-neutral-500 transition animate-appear"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+            <span className="font-medium text-[11px]">Scroll to bottom</span>
+          </button>
+        )}
+
+        {/* Floating input bar */}
         {messages.length > 0 && (
           <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 px-2 sm:px-3">
             {renderInputBar(true)}
@@ -887,7 +1035,7 @@ export default function App() {
         )}
       </main>
 
-      {/* ── Recruiter Modal ── */}
+      {/* Recruiter Tasks Modal */}
       {showRecruiterModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setShowRecruiterModal(false)}>
           <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
