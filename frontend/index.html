@@ -457,6 +457,127 @@
       );
     }
 
+    // ── Input Bar (Top-level component: prevents unmounting on state change) ───
+    function InputBar({
+      compact,
+      input,
+      setInput,
+      isStreaming,
+      handleSend,
+      handleNewChat,
+      chatInputRef,
+      popoverRef,
+      showModelPicker,
+      setShowModelPicker,
+      model,
+      setModel,
+      currentModelObj
+    }) {
+      return (
+        <div className={`bg-[#161616] border border-[#262626] rounded-2xl sm:rounded-3xl ${compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
+          <textarea
+            ref={chatInputRef}
+            rows={compact ? 2 : 3}
+            value={input}
+            onChange={e => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = Math.max(compact ? 48 : 72, Math.min(e.target.scrollHeight, 160)) + "px";
+            }}
+            onKeyDown={e => {
+              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+            }}
+            placeholder={compact ? "Ask about Dar Global or Wasalt..." : "Ask anything about Dar Global luxury developments or Wasalt properties..."}
+            className={`w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none px-1.5 ${
+              compact ? "min-h-[48px] sm:min-h-[56px]" : "min-h-[72px] sm:min-h-[84px]"
+            } leading-relaxed`}
+            disabled={isStreaming}
+          />
+          <div className="flex items-center justify-between pt-1.5 sm:pt-2">
+            {/* Left: New Chat */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleNewChat}
+                className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-lg hover:bg-neutral-800 transition"
+                title="New Chat"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
+                </svg>
+                <span className="hidden sm:inline">New Chat</span>
+              </button>
+            </div>
+
+            {/* Right: Model selector + Send */}
+            <div className="flex items-center gap-2" ref={popoverRef}>
+              {/* Spinner when streaming */}
+              {isStreaming && (
+                <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin mr-1" title="Generating response..."/>
+              )}
+
+              {/* Model Selector Pill */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowModelPicker(!showModelPicker)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 font-medium transition border border-neutral-700/60"
+                >
+                  <span className="truncate max-w-[90px] sm:max-w-none">{currentModelObj.shortLabel}</span>
+                  <span className="text-[10px] text-neutral-400">⌵</span>
+                </button>
+
+                {/* Popover */}
+                {showModelPicker && (
+                  <div className="absolute right-0 bottom-full mb-2 bg-[#161616] border border-[#2E2E2E] rounded-2xl p-1.5 shadow-2xl z-50 w-64 text-xs">
+                    <div className="text-[10px] font-semibold text-neutral-500 uppercase px-3 py-1.5">
+                      Select AI Model
+                    </div>
+                    {SUPPORTED_MODELS.map((item) => {
+                      const isSelected = model === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => { setModel(item.id); setShowModelPicker(false); }}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#202020] flex items-center justify-between transition ${
+                            isSelected ? "bg-[#1E1E1E] text-white font-medium" : "text-neutral-400"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-blue-400" : "bg-transparent"}`} />
+                            <span className={isSelected ? "text-white font-semibold" : "text-neutral-300"}>
+                              {item.label}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.badgeColor}`}>
+                            {item.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                type="button"
+                onClick={() => handleSend()}
+                disabled={isStreaming || !input.trim()}
+                className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-25 disabled:cursor-not-allowed flex-shrink-0`}
+                title="Send message (Enter)"
+              >
+                <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // ── Main App ──────────────────────────────────────────────────────────────
     function App() {
       // Sessions & current
@@ -719,107 +840,23 @@
         handleSend(failedQuery);
       };
 
-      // ── Input Bar shared ────────────────────────────────────────────────────
-      const InputBar = ({ compact }) => (
-        <div className={`bg-[#161616] border border-[#262626] rounded-2xl sm:rounded-3xl ${compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
-          <textarea
-            ref={chatInputRef}
-            rows={compact ? 2 : 3}
-            value={input}
-            onChange={e => {
-              setInput(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height = Math.max(compact ? 48 : 72, Math.min(e.target.scrollHeight, 160)) + "px";
-            }}
-            onKeyDown={e => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
-            }}
-            placeholder={compact ? "Ask about Dar Global or Wasalt..." : "Ask anything about Dar Global luxury developments or Wasalt properties..."}
-            className={`w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none px-1.5 ${
-              compact ? "min-h-[48px] sm:min-h-[56px]" : "min-h-[72px] sm:min-h-[84px]"
-            } leading-relaxed`}
-            disabled={isStreaming}
-          />
-          <div className="flex items-center justify-between pt-1.5 sm:pt-2">
-            {/* Left: New Chat */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={handleNewChat}
-                className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white px-2 py-1 rounded-lg hover:bg-neutral-800 transition"
-                title="New Chat"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
-                </svg>
-                <span className="hidden sm:inline">New Chat</span>
-              </button>
-            </div>
-
-            {/* Right: Model selector + Send */}
-            <div className="flex items-center gap-2" ref={popoverRef}>
-              {/* Spinner when streaming */}
-              {isStreaming && (
-                <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin mr-1" title="Generating response..."/>
-              )}
-
-              {/* Model Selector Pill */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowModelPicker(!showModelPicker)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 font-medium transition border border-neutral-700/60"
-                >
-                  <span className="truncate max-w-[90px] sm:max-w-none">{currentModelObj.shortLabel}</span>
-                  <span className="text-[10px] text-neutral-400">⌵</span>
-                </button>
-
-                {/* Popover */}
-                {showModelPicker && (
-                  <div className="absolute right-0 bottom-full mb-2 bg-[#161616] border border-[#2E2E2E] rounded-2xl p-1.5 shadow-2xl z-50 w-64 text-xs">
-                    <div className="text-[10px] font-semibold text-neutral-500 uppercase px-3 py-1.5">
-                      Select AI Model
-                    </div>
-                    {SUPPORTED_MODELS.map((item) => {
-                      const isSelected = model === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => { setModel(item.id); setShowModelPicker(false); }}
-                          className={`w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#202020] flex items-center justify-between transition ${
-                            isSelected ? "bg-[#1E1E1E] text-white font-medium" : "text-neutral-400"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-blue-400" : "bg-transparent"}`} />
-                            <span className={isSelected ? "text-white font-semibold" : "text-neutral-300"}>
-                              {item.label}
-                            </span>
-                          </div>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.badgeColor}`}>
-                            {item.badge}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Send Button */}
-              <button
-                onClick={() => handleSend()}
-                disabled={isStreaming || !input.trim()}
-                className={`${compact ? "w-8 h-8" : "w-8 h-8 sm:w-9 sm:h-9"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-25 disabled:cursor-not-allowed flex-shrink-0`}
-                title="Send message (Enter)"
-              >
-                <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+      // ── Input Bar helper ───────────────────────────────────────────────────
+      const renderInputBar = (compact) => (
+        <InputBar
+          compact={compact}
+          input={input}
+          setInput={setInput}
+          isStreaming={isStreaming}
+          handleSend={handleSend}
+          handleNewChat={handleNewChat}
+          chatInputRef={chatInputRef}
+          popoverRef={popoverRef}
+          showModelPicker={showModelPicker}
+          setShowModelPicker={setShowModelPicker}
+          model={model}
+          setModel={setModel}
+          currentModelObj={currentModelObj}
+        />
       );
 
       // ── Render ──────────────────────────────────────────────────────────────
@@ -902,7 +939,7 @@
                 <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">Dar Global luxury real estate · Wasalt Saudi properties</p>
 
                 <div className="w-full max-w-2xl mb-5 sm:mb-6">
-                  <InputBar compact={false} />
+                  {renderInputBar(false)}
                 </div>
 
                 {/* Readymade Prompts */}
@@ -1022,7 +1059,7 @@
             {/* Floating input (when conversation active) */}
             {messages.length > 0 && (
               <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 px-2 sm:px-3">
-                <InputBar compact={true} />
+                {renderInputBar(true)}
               </div>
             )}
           </main>
