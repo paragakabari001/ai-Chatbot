@@ -41,169 +41,520 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* Dark Minimalist Theme */
+    /* ===== GLOBAL ===== */
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       background-color: #0A0A0A;
       color: #E5E5E5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
     }
 
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0A0A0A; }
-    ::-webkit-scrollbar-thumb { background: #262626; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #333333; }
+    /* ===== HIDE ALL SCROLLBARS ===== */
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    *::-webkit-scrollbar { display: none; }
 
-    /* Typing cursor effect */
+    /* ===== TYPING CURSOR ===== */
     .typing-cursor::after {
       content: '▋';
       display: inline-block;
       vertical-align: middle;
       color: #FFFFFF;
       animation: blink 0.8s infinite;
-      margin-left: 3px;
+      margin-left: 2px;
     }
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
 
-    /* Markdown Styling */
-    .prose-chat h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #FFFFFF;
-      margin-top: 1.25rem;
-      margin-bottom: 0.6rem;
-      letter-spacing: -0.01em;
+    /* ===== SKELETON SHIMMER ===== */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
     }
-    .prose-chat h2 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #FFFFFF;
-      margin-top: 1.2rem;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.01em;
+    .skeleton-line {
+      border-radius: 6px;
+      background: linear-gradient(90deg, #1a1a1a 25%, #282828 50%, #1a1a1a 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
     }
-    .prose-chat h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #FFFFFF;
-      margin-top: 1rem;
-      margin-bottom: 0.4rem;
+
+    /* ===== CITATIONS APPEAR ANIMATION ===== */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .prose-chat h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #F3F4F6;
-      margin-top: 0.85rem;
-      margin-bottom: 0.35rem;
+    .cite-appear {
+      animation: fadeSlideUp 0.35s ease forwards;
     }
-    .prose-chat p {
-      margin-bottom: 0.85rem;
-      line-height: 1.65;
-      color: #D4D4D4;
-      font-size: 0.9375rem;
+
+    /* ===== SPEAK PULSE ===== */
+    @keyframes speakPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+      50%       { opacity: 0.85; box-shadow: 0 0 0 6px rgba(59,130,246,0); }
     }
-    .prose-chat ul {
-      list-style-type: disc;
-      padding-left: 1.4rem;
-      margin-bottom: 0.9rem;
-      color: #D4D4D4;
+    .speaking-active {
+      animation: speakPulse 1.2s infinite ease-in-out;
     }
-    .prose-chat ol {
-      list-style-type: decimal;
-      padding-left: 1.4rem;
-      margin-bottom: 0.9rem;
-      color: #D4D4D4;
+
+    /* ===== USAGE RING ===== */
+    .usage-ring-track { fill: none; stroke: #262626; stroke-width: 3; }
+    .usage-ring-fill  {
+      fill: none;
+      stroke: #3B82F6;
+      stroke-width: 3;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.6s ease;
     }
-    .prose-chat li {
-      margin-bottom: 0.35rem;
-      line-height: 1.6;
-      font-size: 0.9375rem;
+
+    /* ===== SIDEBAR ===== */
+    .sidebar-enter {
+      animation: sidebarIn 0.22s cubic-bezier(0.4,0,0.2,1) forwards;
     }
-    .prose-chat strong {
-      color: #FFFFFF;
-      font-weight: 600;
+    @keyframes sidebarIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
     }
-    .prose-chat a {
-      color: #60A5FA;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
+
+    /* ===== MARKDOWN PROSE ===== */
+    .prose-chat h1 { font-size: 1.35rem; font-weight: 700; color: #fff; margin: 1.25rem 0 0.6rem; letter-spacing: -0.01em; }
+    .prose-chat h2 { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 1.2rem 0 0.5rem; letter-spacing: -0.01em; }
+    .prose-chat h3 { font-size: 1rem;    font-weight: 600; color: #fff; margin: 1rem 0 0.4rem; }
+    .prose-chat h4 { font-size: 0.95rem; font-weight: 600; color: #F3F4F6; margin: 0.85rem 0 0.35rem; }
+    .prose-chat p  { margin-bottom: 0.85rem; line-height: 1.65; color: #D4D4D4; font-size: 0.9375rem; }
+    .prose-chat ul { list-style-type: disc;    padding-left: 1.4rem; margin-bottom: 0.9rem; color: #D4D4D4; }
+    .prose-chat ol { list-style-type: decimal; padding-left: 1.4rem; margin-bottom: 0.9rem; color: #D4D4D4; }
+    .prose-chat li { margin-bottom: 0.35rem; line-height: 1.6; font-size: 0.9375rem; }
+    .prose-chat strong { color: #fff; font-weight: 600; }
+    .prose-chat a { color: #60A5FA; text-decoration: underline; text-underline-offset: 2px; }
+    .prose-chat a .ext-icon { display: inline-block; margin-right: 3px; font-size: 0.7em; vertical-align: middle; opacity: 0.8; }
     .prose-chat code {
-      background-color: #1A1A1A;
-      color: #E5E5E5;
-      padding: 0.15rem 0.35rem;
-      border-radius: 0.25rem;
+      background-color: #1A1A1A; color: #E5E5E5;
+      padding: 0.15rem 0.35rem; border-radius: 0.25rem;
       font-size: 0.85em;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+    .prose-chat pre { background: #141414; border: 1px solid #262626; border-radius: 8px; padding: 1rem; overflow-x: auto; margin-bottom: 1rem; }
+    .prose-chat pre code { background: none; padding: 0; }
+    .prose-chat blockquote { border-left: 3px solid #3B82F6; padding-left: 1rem; margin: 1rem 0; color: #9CA3AF; font-style: italic; }
+    .prose-chat hr { border: none; border-top: 1px solid #262626; margin: 1.25rem 0; }
+    .prose-chat table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.875rem; }
+    .prose-chat th { background: #161616; color: #fff; padding: 0.5rem 0.75rem; border: 1px solid #262626; text-align: left; }
+    .prose-chat td { padding: 0.5rem 0.75rem; border: 1px solid #222; color: #D4D4D4; }
   </style>
 </head>
-<body class="bg-[#0A0A0A] text-[#E5E5E5] min-h-screen flex flex-col antialiased">
-  <div id="root" class="flex-1 flex flex-col h-screen"></div>
+<body class="bg-[#0A0A0A] text-[#E5E5E5] min-h-screen antialiased">
+  <div id="root" class="flex h-screen overflow-hidden"></div>
 
-  <!-- React 18 Application Script -->
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    marked.setOptions({
-      breaks: true,
-      gfm: true
-    });
+    // ── Markdown config ──────────────────────────────────────────────────────
+    marked.setOptions({ breaks: true, gfm: true });
 
-    function App() {
-      const [messages, setMessages] = useState([]);
-      const [input, setInput] = useState("");
-      const [isStreaming, setIsStreaming] = useState(false);
-      const [model, setModel] = useState("openai/gpt-4o");
-      const [showRecruiterModal, setShowRecruiterModal] = useState(false);
-      const [showModelPicker, setShowModelPicker] = useState(false);
-      const messagesEndRef = useRef(null);
-      const chatInputRef = useRef(null);
+    function renderMarkdown(raw) {
+      if (!raw) return "";
+      let html = marked.parse(raw);
+      // Add external link icon before every external href
+      html = html.replace(
+        /<a\s+([^>]*href=["']https?:\/\/[^"']+["'][^>]*)>/gi,
+        (match, attrs) => `<a ${attrs}><span class="ext-icon">🔗</span>`
+      );
+      return html;
+    }
 
-      const quickPrompts = [
-        "What are Dar Global's top luxury branded residential projects and international locations?",
-        "How do I search, rent, or buy apartments and villas in Riyadh on Wasalt?",
-        "Explain Dar Global's 7-day token reservation policy and purchase agreement terms.",
-        "What are Saudi REGA regulations, Fal licensing, and the Ejar network on Wasalt?"
-      ];
+    // ── LocalStorage chat history helpers ────────────────────────────────────
+    const LS_KEY = "dg_wasalt_history";
+    function loadHistory() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveHistory(sessions) {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(sessions)); } catch {}
+    }
+    function newSession() {
+      return { id: Date.now().toString(), title: "New Chat", messages: [], ts: Date.now() };
+    }
 
-      const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      };
+    // ── Strip markdown to plain text for TTS ─────────────────────────────────
+    function stripMarkdown(text) {
+      return text
+        .replace(/!\[.*?\]\(.*?\)/g, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/#{1,6}\s+/g, "")
+        .replace(/[*_`~]+/g, "")
+        .replace(/>\s/g, "")
+        .replace(/[-*+]\s/g, "")
+        .replace(/\n+/g, " ")
+        .trim();
+    }
+
+    // ── Circular Usage Ring ───────────────────────────────────────────────────
+    function UsageRing({ used, limit }) {
+      const pct   = Math.min(used / limit, 1);
+      const r     = 10;
+      const circ  = 2 * Math.PI * r;
+      const offset = circ * (1 - pct);
+      const label = used >= 1000 ? `${(used / 1000).toFixed(1)}k` : used;
+      const color = pct > 0.85 ? "#EF4444" : pct > 0.65 ? "#F59E0B" : "#3B82F6";
+
+      return (
+        <div className="relative flex items-center justify-center" title={`${Math.round(pct*100)}% of ~${limit} token budget used`}>
+          <svg width="28" height="28" viewBox="0 0 28 28">
+            <circle className="usage-ring-track" cx="14" cy="14" r={r} />
+            <circle
+              className="usage-ring-fill"
+              cx="14" cy="14" r={r}
+              stroke={color}
+              strokeDasharray={circ}
+              strokeDashoffset={offset}
+              style={{ transformOrigin: "14px 14px" }}
+            />
+          </svg>
+          <span className="absolute text-[7px] font-bold text-neutral-300 leading-none">
+            {label}
+          </span>
+        </div>
+      );
+    }
+
+    // ── Speak Button ─────────────────────────────────────────────────────────
+    function SpeakButton({ text }) {
+      const [speaking, setSpeaking] = useState(false);
+
+      const toggle = useCallback(() => {
+        const synth = window.speechSynthesis;
+        if (!synth) return;
+        if (speaking) {
+          synth.cancel();
+          setSpeaking(false);
+          return;
+        }
+        const plain = stripMarkdown(text);
+        const utt = new SpeechSynthesisUtterance(plain);
+        utt.rate = 0.95;
+        utt.pitch = 1;
+        utt.onend   = () => setSpeaking(false);
+        utt.onerror = () => setSpeaking(false);
+        synth.speak(utt);
+        setSpeaking(true);
+      }, [speaking, text]);
+
+      return (
+        <button
+          onClick={toggle}
+          title={speaking ? "Stop speaking" : "Read aloud"}
+          className={`flex items-center justify-center w-6 h-6 rounded-full border transition ${
+            speaking
+              ? "border-blue-500 text-blue-400 speaking-active"
+              : "border-neutral-700 text-neutral-500 hover:text-neutral-300 hover:border-neutral-500"
+          }`}
+        >
+          {speaking ? (
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="4" height="16" rx="1"/>
+              <rect x="14" y="4" width="4" height="16" rx="1"/>
+            </svg>
+          ) : (
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+          )}
+        </button>
+      );
+    }
+
+    // ── Citations with skeleton → reveal ─────────────────────────────────────
+    function CitationsBlock({ citations, loading }) {
+      const [revealed, setRevealed] = useState(false);
 
       useEffect(() => {
-        scrollToBottom();
+        if (!loading && citations && citations.length > 0) {
+          const t = setTimeout(() => setRevealed(true), 350);
+          return () => clearTimeout(t);
+        }
+        setRevealed(false);
+      }, [loading, citations]);
+
+      if (loading) {
+        return (
+          <div className="mt-4 pt-3 border-t border-[#1C1C1C]">
+            <div className="text-[11px] font-semibold text-neutral-600 uppercase tracking-wider mb-2">
+              Sources & Knowledge Grounding
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[90, 130, 100, 80].map((w, i) => (
+                <div
+                  key={i}
+                  className="skeleton-line h-6 rounded-full"
+                  style={{ width: w, animationDelay: `${i * 0.12}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      if (!citations || citations.length === 0) return null;
+      if (!revealed) return null;
+
+      return (
+        <div className="mt-4 pt-3 border-t border-[#1C1C1C] cite-appear">
+          <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+            Sources & Knowledge Grounding
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {citations.map((c, i) => (
+              <a
+                key={i}
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141414] border border-[#222222] hover:border-neutral-600 text-xs text-neutral-300 hover:text-white transition cite-appear"
+                style={{ animationDelay: `${i * 0.07}s` }}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${c.source === 'Dar Global' ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`} />
+                <span className="font-semibold text-white">{c.source}:</span>
+                <span className="truncate max-w-[160px] text-neutral-400">{c.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ── Entity Highlight Cards ────────────────────────────────────────────────
+    function EntityCards({ text }) {
+      const lower = text.toLowerCase();
+      const cards = [];
+      if (lower.includes("davinci") || lower.includes("pagani"))
+        cards.push({ title: "DaVinci Tower by Pagani", partner: "Pagani Automobili", loc: "Downtown Dubai Canal", desc: "Ultra-luxury residential landmark with carbon-fiber architecture and Burj Khalifa views.", url: "https://darglobal.co.uk/projects" });
+      if (lower.includes("aida") || lower.includes("muscat"))
+        cards.push({ title: "AIDA Muscat Community", partner: "Trump International Golf", loc: "Muscat, Oman (130m Cliffside)", desc: "Freehold luxury cliffside villas, Trump Golf Club & permanent residency in Oman.", url: "https://darglobal.co.uk/projects" });
+      if (lower.includes("urban oasis") || lower.includes("missoni"))
+        cards.push({ title: "Urban Oasis by Missoni", partner: "Missoni Italian Fashion", loc: "Dubai Canal, Business Bay", desc: "Signature Missoni zig-zag geometries, waterfront infinity pool & aquatic gym.", url: "https://darglobal.co.uk/projects" });
+      if (lower.includes("wasalt") || lower.includes("riyadh") || lower.includes("rega") || lower.includes("ejar"))
+        cards.push({ title: "Wasalt Saudi Real Estate", partner: "REGA & Fal Licensed", loc: "Kingdom of Saudi Arabia", desc: "Verified properties for rent & sale, 360-degree tours & electronic Ejar contracts.", url: "https://wasalt.sa/en" });
+      if (cards.length === 0) return null;
+      return (
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {cards.slice(0, 2).map((c, i) => (
+            <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl bg-[#141414] border border-[#262626] hover:border-neutral-600 text-xs transition">
+              <div className="flex items-center justify-between font-bold text-white mb-1">
+                <span>🔗 {c.title}</span>
+                <span className="text-[10px] px-2 py-0.5 bg-neutral-800 text-neutral-300 rounded font-medium">{c.partner}</span>
+              </div>
+              <div className="text-neutral-500 text-[11px]">📍 {c.loc}</div>
+              <div className="text-neutral-400 text-xs mt-1.5 leading-snug">{c.desc}</div>
+            </a>
+          ))}
+        </div>
+      );
+    }
+
+    // ── Chat History Sidebar ──────────────────────────────────────────────────
+    function Sidebar({ sessions, currentId, onSelect, onNew, onDelete, isOpen, onClose }) {
+      if (!isOpen) return null;
+      return (
+        <div className="fixed inset-0 z-40 flex" onClick={onClose}>
+          <div
+            className="relative w-72 h-full bg-[#0D0D0D] border-r border-[#1E1E1E] flex flex-col sidebar-enter"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#1E1E1E]">
+              <span className="text-sm font-semibold text-white">Chat History</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onNew}
+                  title="New Chat"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1A1A1A] border border-[#262626] hover:border-neutral-600 text-xs text-neutral-300 hover:text-white transition"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
+                  </svg>
+                  New
+                </button>
+                <button onClick={onClose} className="text-neutral-500 hover:text-white transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Session list */}
+            <div className="flex-1 overflow-y-auto py-2 px-2">
+              {sessions.length === 0 && (
+                <p className="text-xs text-neutral-600 text-center mt-8">No conversations yet.</p>
+              )}
+              {sessions.slice().reverse().map(s => (
+                <div
+                  key={s.id}
+                  className={`group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition mb-1 ${
+                    s.id === currentId
+                      ? "bg-[#1A1A1A] border border-[#262626] text-white"
+                      : "hover:bg-[#141414] text-neutral-400 hover:text-white border border-transparent"
+                  }`}
+                  onClick={() => { onSelect(s.id); onClose(); }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{s.title}</div>
+                    <div className="text-[10px] text-neutral-600 mt-0.5">
+                      {new Date(s.ts).toLocaleDateString()} · {s.messages.length} msgs
+                    </div>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); onDelete(s.id); }}
+                    className="opacity-0 group-hover:opacity-100 ml-2 text-neutral-600 hover:text-red-400 transition"
+                    title="Delete"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-[#1E1E1E] text-[10px] text-neutral-600">
+              Dar Global & Wasalt AI Advisor
+            </div>
+          </div>
+          {/* Backdrop */}
+          <div className="flex-1 bg-black/40 backdrop-blur-sm" />
+        </div>
+      );
+    }
+
+    // ── Main App ──────────────────────────────────────────────────────────────
+    function App() {
+      // Sessions & current
+      const [sessions, setSessions]         = useState(() => {
+        const h = loadHistory();
+        return h.length > 0 ? h : [newSession()];
+      });
+      const [currentId, setCurrentId]       = useState(() => {
+        const h = loadHistory();
+        return h.length > 0 ? h[h.length - 1].id : sessions[0]?.id;
+      });
+      const currentSession = useMemo(
+        () => sessions.find(s => s.id === currentId) || sessions[0],
+        [sessions, currentId]
+      );
+      const messages = currentSession?.messages || [];
+
+      // UI state
+      const [input, setInput]               = useState("");
+      const [isStreaming, setIsStreaming]    = useState(false);
+      const [model, setModel]               = useState("openai/gpt-4o");
+      const [showModelPicker, setShowModelPicker] = useState(false);
+      const [showRecruiterModal, setShowRecruiterModal] = useState(false);
+      const [sidebarOpen, setSidebarOpen]   = useState(false);
+      const [citationsLoading, setCitationsLoading] = useState(false);
+
+      // Usage tracking (tokens per session)
+      const [tokensUsed, setTokensUsed]     = useState(0);
+      const TOKEN_LIMIT = 4000;
+
+      const messagesEndRef = useRef(null);
+      const chatInputRef   = useRef(null);
+
+      // Persist sessions to localStorage
+      useEffect(() => { saveHistory(sessions); }, [sessions]);
+
+      // Scroll to bottom
+      useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [messages, isStreaming]);
 
+      // Update session messages helper
+      const updateSession = useCallback((id, updater) => {
+        setSessions(prev => prev.map(s => s.id === id ? { ...s, ...updater(s) } : s));
+      }, []);
+
+      const quickPrompts = [
+        "What are Dar Global's top luxury branded residential projects?",
+        "How do I search, rent, or buy properties on Wasalt?",
+        "Explain Dar Global's 7-day token reservation policy.",
+        "What are Saudi REGA regulations on Wasalt?"
+      ];
+
+      // ── New Chat ────────────────────────────────────────────────────────────
+      const handleNewChat = useCallback(() => {
+        const s = newSession();
+        setSessions(prev => [...prev, s]);
+        setCurrentId(s.id);
+        setInput("");
+        setTokensUsed(0);
+        setSidebarOpen(false);
+      }, []);
+
+      // ── Delete session ──────────────────────────────────────────────────────
+      const handleDeleteSession = useCallback((id) => {
+        setSessions(prev => {
+          const next = prev.filter(s => s.id !== id);
+          if (next.length === 0) {
+            const s = newSession();
+            setCurrentId(s.id);
+            return [s];
+          }
+          if (id === currentId) setCurrentId(next[next.length - 1].id);
+          return next;
+        });
+      }, [currentId]);
+
+      // ── Send message ────────────────────────────────────────────────────────
       const handleSend = async (textToSend) => {
         const query = (textToSend || input).trim();
         if (!query || isStreaming) return;
 
-        const userMessage = { role: "user", content: query };
-        const assistantMessage = { role: "assistant", content: "", citations: [], id: Date.now() };
+        const sessId = currentId;
+        const userMsg = { role: "user", content: query };
+        const assistMsg = { role: "assistant", content: "", citations: [], id: Date.now(), citLoading: true };
 
-        setMessages((prev) => [...prev, userMessage, assistantMessage]);
+        updateSession(sessId, s => ({
+          messages: [...s.messages, userMsg, assistMsg],
+          title: s.title === "New Chat" ? query.slice(0, 40) : s.title
+        }));
         setInput("");
         setIsStreaming(true);
+        setCitationsLoading(true);
 
-        if (chatInputRef.current) {
-          chatInputRef.current.style.height = "auto";
-        }
+        if (chatInputRef.current) chatInputRef.current.style.height = "auto";
 
         try {
           const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: query, model: model, top_k: 4 }),
+            body: JSON.stringify({ message: query, model, top_k: 4 })
           });
-
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-          const reader = response.body.getReader();
+          const reader  = response.body.getReader();
           const decoder = new TextDecoder("utf-8");
           let buffer = "";
+
+          // Helper: append token with delay for slow-type effect
+          const appendToken = (token) => new Promise(resolve => {
+            updateSession(sessId, s => {
+              const msgs = [...s.messages];
+              const last = msgs[msgs.length - 1];
+              if (last && last.role === "assistant") {
+                msgs[msgs.length - 1] = { ...last, content: last.content + token };
+              }
+              return { messages: msgs };
+            });
+            setTokensUsed(prev => prev + token.split(/\s+/).length);
+            setTimeout(resolve, 28); // slow-type delay
+          });
 
           while (true) {
             const { done, value } = await reader.read();
@@ -215,266 +566,291 @@
 
             for (const block of blocks) {
               if (!block.trim()) continue;
-              const lines = block.split("\n");
-              let eventType = "message";
-              let dataStr = "";
+              const lines     = block.split("\n");
+              let eventType   = "message";
+              let dataStr     = "";
 
               for (const line of lines) {
-                if (line.startsWith("event: ")) eventType = line.slice(7).trim();
-                else if (line.startsWith("data: ")) dataStr = line.slice(6).trim();
+                if (line.startsWith("event: "))      eventType = line.slice(7).trim();
+                else if (line.startsWith("data: "))  dataStr   = line.slice(6).trim();
               }
 
               if (eventType === "citations") {
                 try {
-                  const parsedCitations = JSON.parse(dataStr);
-                  setMessages((prev) => {
-                    const next = [...prev];
-                    const last = next[next.length - 1];
+                  const parsed = JSON.parse(dataStr);
+                  // Show skeleton briefly, then reveal
+                  setCitationsLoading(true);
+                  updateSession(sessId, s => {
+                    const msgs = [...s.messages];
+                    const last = msgs[msgs.length - 1];
                     if (last && last.role === "assistant") {
-                      last.citations = parsedCitations;
+                      msgs[msgs.length - 1] = { ...last, citations: parsed, citLoading: true };
                     }
-                    return next;
+                    return { messages: msgs };
                   });
-                } catch (e) {}
+                  // Reveal after 800ms
+                  setTimeout(() => {
+                    setCitationsLoading(false);
+                    updateSession(sessId, s => {
+                      const msgs = [...s.messages];
+                      const last = msgs[msgs.length - 1];
+                      if (last && last.role === "assistant") {
+                        msgs[msgs.length - 1] = { ...last, citLoading: false };
+                      }
+                      return { messages: msgs };
+                    });
+                  }, 800);
+                } catch {}
               } else if (eventType === "token") {
                 let token = "";
-                try {
-                  token = JSON.parse(dataStr).token;
-                } catch (e) {
-                  token = dataStr;
-                }
-                setMessages((prev) => {
-                  const next = [...prev];
-                  const last = next[next.length - 1];
-                  if (last && last.role === "assistant") {
-                    last.content += token;
-                  }
-                  return next;
-                });
+                try { token = JSON.parse(dataStr).token; } catch { token = dataStr; }
+                if (token) await appendToken(token);
               }
             }
           }
         } catch (err) {
-          setMessages((prev) => {
-            const next = [...prev];
-            const last = next[next.length - 1];
+          updateSession(sessId, s => {
+            const msgs = [...s.messages];
+            const last = msgs[msgs.length - 1];
             if (last && last.role === "assistant") {
-              last.content = `Error: ${err.message}. Please retry.`;
+              msgs[msgs.length - 1] = { ...last, content: `⚠️ Error: ${err.message}. Please retry.`, citLoading: false };
             }
-            return next;
+            return { messages: msgs };
           });
         } finally {
           setIsStreaming(false);
+          setCitationsLoading(false);
         }
       };
 
-      const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-      };
+      const copyToClipboard = (text) => navigator.clipboard.writeText(text);
 
-      return (
-        <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E5E5E5] font-sans">
-          
-          {/* Top Bar - Minimalist */}
-          <header className="px-6 py-3.5 flex items-center justify-between border-b border-transparent z-20">
-            {/* Left: Brand Badges */}
-            <div className="flex items-center gap-2.5">
-              <a href="https://darglobal.co.uk/" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
-                <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]"></span>
-                <span className="font-semibold tracking-wide">DAR GLOBAL</span>
-                <span className="text-[10px] text-neutral-500 font-normal">LSE: DAR</span>
-              </a>
-              <span className="text-neutral-700 text-xs">/</span>
-              <a href="https://wasalt.sa/en" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
-                <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"></span>
-                <span className="font-semibold tracking-wide">WASALT</span>
-                <span className="text-[10px] text-neutral-500 font-normal">REGA Certified</span>
-              </a>
+      // ── Input Bar shared ────────────────────────────────────────────────────
+      const InputBar = ({ compact }) => (
+        <div className={`bg-[#161616] border border-[#262626] rounded-3xl ${compact ? "p-3" : "p-4"} shadow-2xl focus-within:border-neutral-600 transition-all`}>
+          <textarea
+            ref={chatInputRef}
+            rows={compact ? 1 : 2}
+            value={input}
+            onChange={e => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+            }}
+            onKeyDown={e => {
+              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+            }}
+            placeholder={compact ? "Ask about Dar Global or Wasalt..." : "Ask anything about Dar Global luxury developments or Wasalt properties..."}
+            className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-36"
+            disabled={isStreaming}
+          />
+          <div className={`flex items-center justify-between ${compact ? "mt-2 pt-2" : "mt-3 pt-2"} border-t border-[#222222]`}>
+            {/* Left: New Chat + History */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleNewChat}
+                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-300 px-2 py-0.5 rounded transition"
+                title="New Chat"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
+                </svg>
+                New Chat
+              </button>
             </div>
 
-            {/* Right: Status & Recruiter Task Pill */}
+            {/* Right: model + usage + send */}
+            <div className="flex items-center gap-2.5">
+              {/* Usage ring */}
+              {isStreaming && (
+                <div className="w-4 h-4 border-2 border-neutral-600 border-t-white rounded-full animate-spin" title="Processing..."/>
+              )}
+              <UsageRing used={tokensUsed} limit={TOKEN_LIMIT} />
+
+              {/* Model Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowModelPicker(!showModelPicker)}
+                  className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-xs text-neutral-300 font-medium transition"
+                >
+                  <span>{model === "openai/gpt-4o" ? "GPT-4o" : "Free"}</span>
+                  <span className="text-[10px] text-neutral-500">⌵</span>
+                </button>
+                {showModelPicker && (
+                  <div className="absolute right-0 bottom-8 bg-[#1A1A1A] border border-neutral-700 rounded-xl p-1 shadow-2xl z-30 w-48 text-xs">
+                    {[
+                      ["openai/gpt-4o",                      "OpenAI GPT-4o",      "⭐ Recommended"],
+                      ["google/gemini-2.0-flash-exp:free",   "Gemini 2.0 Flash",   "Free"],
+                      ["meta-llama/llama-3.3-70b-instruct:free","Llama 3.3 70B",   "Free"]
+                    ].map(([val, label, badge]) => (
+                      <button
+                        key={val}
+                        onClick={() => { setModel(val); setShowModelPicker(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 flex items-center justify-between transition ${model === val ? "text-white font-semibold" : "text-neutral-400"}`}
+                      >
+                        <span>{label}</span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded ${model === val ? "bg-blue-900 text-blue-300" : "bg-neutral-800 text-neutral-500"}`}>{badge}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Send */}
+              <button
+                onClick={() => handleSend()}
+                disabled={isStreaming || !input.trim()}
+                className={`${compact ? "w-7 h-7" : "w-8 h-8"} rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed`}
+              >
+                <svg className={`${compact ? "w-3.5 h-3.5" : "w-4 h-4"} transform rotate-90`} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+
+      // ── Render ──────────────────────────────────────────────────────────────
+      return (
+        <div className="flex flex-col h-screen bg-[#0A0A0A] text-[#E5E5E5] font-sans overflow-hidden">
+
+          {/* Sidebar */}
+          <Sidebar
+            sessions={sessions}
+            currentId={currentId}
+            onSelect={setCurrentId}
+            onNew={handleNewChat}
+            onDelete={handleDeleteSession}
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+          />
+
+          {/* ── Top Bar ── */}
+          <header className="px-5 py-3 flex items-center justify-between border-b border-[#161616] z-20 flex-shrink-0">
+            {/* Left: Hamburger + Brand */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="text-neutral-500 hover:text-white transition"
+                title="History"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+              </button>
+              <div className="flex items-center gap-2.5">
+                <a href="https://darglobal.co.uk/" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
+                  <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]"/>
+                  <span className="font-semibold tracking-wide">DAR GLOBAL</span>
+                  <span className="text-[10px] text-neutral-600 font-normal">LSE:DAR</span>
+                </a>
+                <span className="text-neutral-700">/</span>
+                <a href="https://wasalt.sa/en" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white transition">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]"/>
+                  <span className="font-semibold tracking-wide">WASALT</span>
+                  <span className="text-[10px] text-neutral-600 font-normal">REGA Certified</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: Refresh + Tasks */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => window.location.reload()}
+                title="Refresh"
+                className="text-neutral-500 hover:text-white transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </button>
               <button
                 onClick={() => setShowRecruiterModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#161616] border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 hover:text-white transition"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>Recruiter Tasks</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>
+                Recruiter Tasks
               </button>
-
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
-                <span className="w-2 h-2 rounded-full bg-white/20"></span>
-                <span>Enterprise AI Advisor</span>
-              </div>
             </div>
           </header>
 
-          {/* Main Conversational Canvas */}
+          {/* ── Main Canvas ── */}
           <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-4 overflow-hidden relative">
-            
+
             {messages.length === 0 ? (
-              /* Minimalist Empty State: "What should we explore?" */
-              <div className="flex-1 flex flex-col items-center justify-center text-center pb-24">
-                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8 tracking-tight">
+              /* Empty state */
+              <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
+                <div className="mb-2 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#D4AF37]"/>
+                  <span className="w-2 h-2 rounded-full bg-[#10B981]"/>
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
                   What should we explore?
                 </h1>
+                <p className="text-sm text-neutral-500 mb-8">Dar Global luxury real estate · Wasalt Saudi properties</p>
 
-                {/* Center Input Capsule */}
-                <div className="w-full max-w-2xl bg-[#161616] border border-[#262626] rounded-3xl p-4 shadow-2xl focus-within:border-neutral-600 transition-all text-left">
-                  <textarea
-                    ref={chatInputRef}
-                    rows="2"
-                    value={input}
-                    onChange={(e) => {
-                      setInput(e.target.value);
-                      e.target.style.height = "auto";
-                      e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    placeholder="Ask anything about Dar Global luxury developments or Wasalt properties..."
-                    className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none"
-                  />
-
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#222222]">
-                    <div className="flex items-center gap-2">
-                      <button className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center text-base transition">
-                        +
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {/* Model Selector Pill */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowModelPicker(!showModelPicker)}
-                          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-xs text-neutral-300 font-medium transition"
-                        >
-                          <span>{model === "openai/gpt-4o" ? "GPT-4o (Active)" : "Free Model"}</span>
-                          <span className="text-[10px] text-neutral-500">⌵</span>
-                        </button>
-
-                        {showModelPicker && (
-                          <div className="absolute right-0 bottom-8 bg-[#1A1A1A] border border-neutral-700 rounded-xl p-1 shadow-2xl z-30 w-44 text-xs">
-                            <button
-                              onClick={() => { setModel("openai/gpt-4o"); setShowModelPicker(false); }}
-                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-white font-medium"
-                            >
-                              OpenAI GPT-4o
-                            </button>
-                            <button
-                              onClick={() => { setModel("google/gemini-2.0-flash-exp:free"); setShowModelPicker(false); }}
-                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300"
-                            >
-                              Gemini 2.0 Flash
-                            </button>
-                            <button
-                              onClick={() => { setModel("meta-llama/llama-3.3-70b-instruct:free"); setShowModelPicker(false); }}
-                              className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300"
-                            >
-                              Llama 3.3 70B
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Mic icon */}
-                      <button className="text-neutral-400 hover:text-white transition">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                        </svg>
-                      </button>
-
-                      {/* Send button */}
-                      <button
-                        onClick={() => handleSend()}
-                        disabled={isStreaming || !input.trim()}
-                        className="w-8 h-8 rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <svg className="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                <div className="w-full max-w-2xl mb-6">
+                  <InputBar compact={false} />
                 </div>
 
-                {/* Subtle Suggestion Chips */}
-                <div className="flex flex-wrap gap-2 mt-6 max-w-2xl justify-center">
-                  {quickPrompts.map((p, idx) => (
+                <div className="flex flex-wrap gap-2 max-w-2xl justify-center">
+                  {quickPrompts.map((p, i) => (
                     <button
-                      key={idx}
+                      key={i}
                       onClick={() => handleSend(p)}
                       className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1C1C1C] border border-[#222222] px-3.5 py-1.5 rounded-full transition"
                     >
-                      {p.length > 45 ? p.slice(0, 45) + "..." : p}
+                      {p.length > 48 ? p.slice(0, 48) + "…" : p}
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              /* Active Conversational Feed */
-              <div className="flex-1 overflow-y-auto space-y-6 pt-4 pb-32 pr-2">
+              /* Chat feed */
+              <div className="flex-1 overflow-y-auto space-y-6 pt-4 pb-36">
                 {messages.map((m, idx) => (
-                  <div key={idx} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div key={m.id || idx} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                     {m.role === "user" ? (
-                      /* User message: Small rounded dark pill on right */
                       <div className="max-w-[85%] sm:max-w-xl bg-[#1C1C1C] border border-neutral-800 text-white px-4 py-2.5 rounded-2xl text-sm leading-relaxed">
                         {m.content}
                       </div>
                     ) : (
-                      /* Assistant message: Borderless, rendered directly on canvas with rich markdown */
                       <div className="w-full text-neutral-200">
+                        {/* Markdown content */}
                         <div
                           className={`prose-chat ${isStreaming && idx === messages.length - 1 ? "typing-cursor" : ""}`}
-                          dangerouslySetInnerHTML={{ __html: marked.parse(m.content || "Thinking...") }}
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content || "Thinking…") }}
                         />
 
-                        {/* Interactive Entity Highlight Cards */}
+                        {/* Entity highlight cards */}
                         {m.content && <EntityCards text={m.content} />}
 
-                        {/* Source Citations */}
-                        {m.citations && m.citations.length > 0 && (
-                          <div className="mt-4 pt-3 border-t border-[#1C1C1C]">
-                            <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-                              Sources & Knowledge Grounding
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {m.citations.map((c, cIdx) => (
-                                <a
-                                  key={cIdx}
-                                  href={c.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141414] border border-[#222222] hover:border-neutral-600 text-xs text-neutral-300 hover:text-white transition"
-                                >
-                                  <span className={`w-1.5 h-1.5 rounded-full ${c.source === 'Dar Global' ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`}></span>
-                                  <span className="font-semibold text-white">{c.source}:</span>
-                                  <span className="truncate max-w-[160px] text-neutral-400">{c.title}</span>
-                                </a>
-                              ))}
-                            </div>
-                          </div>
+                        {/* Citations skeleton → reveal */}
+                        {(m.citLoading || (m.citations && m.citations.length > 0)) && (
+                          <CitationsBlock
+                            citations={m.citations}
+                            loading={!!m.citLoading}
+                          />
                         )}
 
-                        {/* Action buttons (Copy) */}
+                        {/* Action row */}
                         {m.content && (
-                          <div className="mt-3 flex items-center justify-between text-xs text-neutral-500">
-                            <span>Answered by OpenAI GPT-4o • Grounded on Dar Global & Wasalt</span>
-                            <button
-                              onClick={() => copyToClipboard(m.content)}
-                              className="text-neutral-400 hover:text-white transition flex items-center gap-1"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                              </svg>
-                              <span>Copy</span>
-                            </button>
+                          <div className="mt-3 flex items-center justify-between text-xs text-neutral-600">
+                            <span>Answered by {model === "openai/gpt-4o" ? "OpenAI GPT-4o" : model} · Grounded on Dar Global & Wasalt</span>
+                            <div className="flex items-center gap-2">
+                              <SpeakButton text={m.content} />
+                              <button
+                                onClick={() => copyToClipboard(m.content)}
+                                className="text-neutral-500 hover:text-white transition flex items-center gap-1"
+                                title="Copy"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                Copy
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -485,171 +861,50 @@
               </div>
             )}
 
-            {/* Floating Bottom Input Capsule (When in chat conversation) */}
+            {/* Floating input (in conversation) */}
             {messages.length > 0 && (
-              <div className="absolute bottom-4 left-0 right-0 px-4">
-                <div className="max-w-3xl mx-auto bg-[#161616] border border-[#262626] rounded-3xl p-3.5 shadow-2xl focus-within:border-neutral-600 transition-all">
-                  <textarea
-                    ref={chatInputRef}
-                    rows="1"
-                    value={input}
-                    onChange={(e) => {
-                      setInput(e.target.value);
-                      e.target.style.height = "auto";
-                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    placeholder="Ask anything about Dar Global or Wasalt..."
-                    className="w-full bg-transparent text-white placeholder-neutral-500 text-sm outline-none resize-none max-h-28"
-                  />
-
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#222222]">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setMessages([])}
-                        className="text-xs text-neutral-500 hover:text-neutral-300 px-2 py-0.5 rounded transition"
-                        title="Clear Conversation"
-                      >
-                        Clear
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => setShowModelPicker(!showModelPicker)}
-                        className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-800 text-xs text-neutral-300 font-medium"
-                      >
-                        <span>{model === "openai/gpt-4o" ? "GPT-4o" : "Free"}</span>
-                        <span className="text-[10px] text-neutral-500">⌵</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleSend()}
-                        disabled={isStreaming || !input.trim()}
-                        className="w-7 h-7 rounded-full bg-white hover:bg-neutral-200 text-black flex items-center justify-center font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <svg className="w-3.5 h-3.5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <div className="absolute bottom-4 left-0 right-0 px-2">
+                <InputBar compact={true} />
               </div>
             )}
-
           </main>
 
-          {/* Recruiter Evaluation Modal */}
+          {/* ── Recruiter Modal ── */}
           {showRecruiterModal && (
-            <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-              <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+            <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setShowRecruiterModal(false)}>
+              <div className="bg-[#141414] border border-[#262626] rounded-2xl max-w-lg w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>📋</span> AI Full-Stack Assignment Verification
+                      📋 AI Full-Stack Assignment Verification
                     </h3>
-                    <p className="text-xs text-neutral-400">Candidate: <strong className="text-white">PARAG AKABARI</strong></p>
+                    <p className="text-xs text-neutral-400 mt-0.5">Candidate: <strong className="text-white">PARAG AKABARI</strong></p>
                   </div>
-                  <button onClick={() => setShowRecruiterModal(false)} className="text-neutral-400 hover:text-white text-xl font-bold">&times;</button>
+                  <button onClick={() => setShowRecruiterModal(false)} className="text-neutral-400 hover:text-white text-xl font-bold w-7 h-7 flex items-center justify-center">×</button>
                 </div>
 
                 <div className="mt-4 space-y-2.5 text-xs text-neutral-300">
-                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
-                    <strong className="text-emerald-400">1. Data Collection & Ethics:</strong> 59 grounded records from Dar Global & Wasalt, strictly respecting Wasalt's robots.txt access rules (avoiding /search).
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
-                    <strong className="text-emerald-400">2. Grounded Chatbot:</strong> BM25 lexical ranking engine + strict zero-hallucination prompt boundaries.
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
-                    <strong className="text-emerald-400">3. OpenRouter Free & GPT-4o:</strong> Token streaming with user key and deterministic fallback.
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
-                    <strong className="text-emerald-400">4. Docker Container:</strong> Multi-stage build running non-root appuser on port 8000.
-                  </div>
-                  <div className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
-                    <strong className="text-emerald-400">5. Live Deployment:</strong> Verified HTTPS URL for direct evaluation.
-                  </div>
+                  {[
+                    ["1. Data Collection & Ethics", "59 grounded records from Dar Global & Wasalt, strictly respecting robots.txt access rules."],
+                    ["2. Grounded Chatbot",         "BM25 lexical ranking engine + strict zero-hallucination prompt boundaries."],
+                    ["3. OpenRouter GPT-4o",        "Token streaming with deterministic fallback when offline."],
+                    ["4. Docker Container",          "Multi-stage build running non-root appuser on port 8000."],
+                    ["5. Live Deployment",           "Verified HTTPS URL via Cloudflare tunnel for direct evaluation."]
+                  ].map(([title, desc], i) => (
+                    <div key={i} className="p-3 rounded-xl bg-[#1A1A1A] border border-neutral-800">
+                      <strong className="text-emerald-400">{title}:</strong> {desc}
+                    </div>
+                  ))}
                 </div>
 
                 <div className="mt-5 flex justify-end">
-                  <button
-                    onClick={() => setShowRecruiterModal(false)}
-                    className="px-4 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition"
-                  >
+                  <button onClick={() => setShowRecruiterModal(false)} className="px-4 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition">
                     Close
                   </button>
                 </div>
               </div>
             </div>
           )}
-        </div>
-      );
-    }
-
-    function EntityCards({ text }) {
-      const lower = text.toLowerCase();
-      const cards = [];
-
-      if (lower.includes("davinci") || lower.includes("pagani")) {
-        cards.push({
-          title: "DaVinci Tower by Pagani",
-          partner: "Pagani Automobili",
-          loc: "Downtown Dubai Canal",
-          desc: "Ultra-luxury residential landmark with carbon-fiber architecture and Burj Khalifa views.",
-          url: "https://darglobal.co.uk/projects"
-        });
-      }
-
-      if (lower.includes("aida") || lower.includes("muscat")) {
-        cards.push({
-          title: "AIDA Muscat Community",
-          partner: "Trump International Golf",
-          loc: "Muscat, Oman (130m Cliffside)",
-          desc: "Freehold luxury cliffside villas, Trump Golf Club & permanent residency in Oman.",
-          url: "https://darglobal.co.uk/projects"
-        });
-      }
-
-      if (lower.includes("urban oasis") || lower.includes("missoni")) {
-        cards.push({
-          title: "Urban Oasis by Missoni",
-          partner: "Missoni Italian Fashion",
-          loc: "Dubai Canal, Business Bay",
-          desc: "Signature Missoni zig-zag geometries, waterfront infinity pool & aquatic gym.",
-          url: "https://darglobal.co.uk/projects"
-        });
-      }
-
-      if (lower.includes("wasalt") || lower.includes("riyadh") || lower.includes("rega") || lower.includes("ejar")) {
-        cards.push({
-          title: "Wasalt Saudi Real Estate",
-          partner: "REGA & Fal Licensed",
-          loc: "Kingdom of Saudi Arabia (Riyadh/Jeddah)",
-          desc: "Verified properties for rent & sale, 360-degree tours & electronic Ejar contracts.",
-          url: "https://wasalt.sa/en"
-        });
-      }
-
-      if (cards.length === 0) return null;
-
-      return (
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {cards.slice(0, 2).map((c, idx) => (
-            <div key={idx} className="p-3 rounded-xl bg-[#141414] border border-[#262626] text-xs">
-              <div className="flex items-center justify-between font-bold text-white mb-1">
-                <span>{c.title}</span>
-                <span className="text-[10px] px-2 py-0.5 bg-neutral-800 text-neutral-300 rounded font-medium">{c.partner}</span>
-              </div>
-              <div className="text-neutral-500 text-[11px]">📍 {c.loc}</div>
-              <div className="text-neutral-400 text-xs mt-1.5 leading-snug">{c.desc}</div>
-            </div>
-          ))}
         </div>
       );
     }
