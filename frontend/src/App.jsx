@@ -383,7 +383,8 @@ export default function App() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch("/api/chat", {
+      const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+      const response = await fetch(`${apiBase}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: query, model, top_k: 4 }),
