@@ -26,7 +26,7 @@ export const GeminiIcon = ({ className = "w-4 h-4" }) => (
 
 export const MetaLlamaIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
+    <path d="M16.96 5.86c-1.89 0-3.32.96-4.96 2.94-1.64-1.98-3.07-2.94-4.96-2.94C3.12 5.86 0 8.87 0 13.06c0 4.67 3.65 8.08 7.35 8.08 2.03 0 3.52-.96 4.65-2.52 1.13 1.56 2.62 2.52 4.65 2.52 3.7 0 7.35-3.41 7.35-8.08 0-4.19-3.12-7.2-7.04-7.2zm0 13.56c-1.63 0-2.85-.92-3.83-2.45l.83-1.07c.8 1.25 1.74 1.84 3 1.84 2.5 0 4.88-2.39 4.88-5.68 0-2.83-1.95-4.88-4.88-4.88-1.57 0-2.73.84-3.69 2.27l-1.31 1.95-1.31-1.95c-.96-1.43-2.12-2.27-3.69-2.27-2.93 0-4.88 2.05-4.88 4.88 0 3.29 2.38 5.68 4.88 5.68 1.26 0 2.2-.59 3-1.84l.83 1.07c-.98 1.53-2.2 2.45-3.83 2.45-3.6 0-6.72-2.96-6.72-7.36 0-3.79 2.76-6.48 6.72-6.48 1.98 0 3.48.97 4.96 2.9 1.48-1.93 2.98-2.9 4.96-2.9 3.96 0 6.72 2.69 6.72 6.48 0 4.4-3.12 7.36-6.72 7.36z" />
   </svg>
 );
 
@@ -37,8 +37,9 @@ export const SUPPORTED_MODELS = [
     id: "openai/gpt-4o",
     label: "OpenAI GPT-4o",
     shortLabel: "GPT-4o",
-    badge: "⭐ Recommended",
-    badgeColor: "bg-blue-600/30 text-blue-300 border border-blue-500/40",
+    desc: "Flagship intelligence & precision grounding",
+    badge: "Recommended",
+    badgeColor: "bg-blue-500/15 text-blue-400 border border-blue-500/30",
     icon: OpenAIIcon,
     iconColor: "text-emerald-400"
   },
@@ -46,8 +47,9 @@ export const SUPPORTED_MODELS = [
     id: "google/gemini-2.0-flash-exp:free",
     label: "Gemini 2.0 Flash",
     shortLabel: "Gemini Flash",
+    desc: "High-speed conversational reasoning",
     badge: "Free",
-    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700",
+    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700/60",
     icon: GeminiIcon,
     iconColor: "text-blue-400"
   },
@@ -55,8 +57,9 @@ export const SUPPORTED_MODELS = [
     id: "meta-llama/llama-3.3-70b-instruct:free",
     label: "Llama 3.3 70B",
     shortLabel: "Llama 3.3",
+    desc: "Open-weights deep instruction following",
     badge: "Free",
-    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700",
+    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700/60",
     icon: MetaLlamaIcon,
     iconColor: "text-blue-500"
   }
