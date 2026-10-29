@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 function getDomain(url, fallbackSource) {
   try {
-    if (url) {
-      const u = new URL(url);
+    if (url && typeof url === 'string') {
+      // If url contains multiple links separated by " and "
+      const firstUrl = url.split(" and ")[0].trim();
+      const u = new URL(firstUrl);
       return u.hostname.replace(/^www\./, '');
     }
   } catch {}
@@ -11,12 +13,19 @@ function getDomain(url, fallbackSource) {
 }
 
 function CitationPill({ c, index }) {
+  if (!c || typeof c !== 'object') return null;
+
   const [hovered, setHovered] = useState(false);
   const timeoutRef = useRef(null);
-  const isDarGlobal = c.source === 'Dar Global';
-  const domain = getDomain(c.url, c.source);
+
+  const source = c.source || "Grounded Source";
+  const isDarGlobal = source === 'Dar Global';
+  const rawUrl = c.url || (isDarGlobal ? "https://darglobal.co.uk/" : "https://wasalt.sa/en");
+  const firstUrl = typeof rawUrl === 'string' ? rawUrl.split(" and ")[0].trim() : "https://wasalt.sa/en";
+  const domain = getDomain(firstUrl, source);
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
   const fallbackFaviconUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+  const title = c.title || "Official Reference";
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -46,7 +55,7 @@ function CitationPill({ c, index }) {
     >
       {/* Citation Pill Link with Status Dot + Domain Favicon */}
       <a
-        href={c.url}
+        href={firstUrl}
         target="_blank"
         rel="noopener noreferrer"
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition animate-appear border ${
@@ -61,7 +70,7 @@ function CitationPill({ c, index }) {
           className={`w-2 h-2 rounded-full flex-shrink-0 ${
             isDarGlobal
               ? 'bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.7)]'
-              : c.source === 'Wasalt'
+              : source === 'Wasalt'
               ? 'bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.7)]'
               : 'bg-[#06B6D4] shadow-[0_0_8px_rgba(6,182,212,0.7)]'
           }`}
@@ -78,8 +87,8 @@ function CitationPill({ c, index }) {
             e.currentTarget.onerror = () => { e.currentTarget.style.display = 'none'; };
           }}
         />
-        <span className="font-semibold text-white whitespace-nowrap">{c.source}:</span>
-        <span className="truncate max-w-[150px] sm:max-w-[240px] text-neutral-400">{c.title}</span>
+        <span className="font-semibold text-white whitespace-nowrap">{source}:</span>
+        <span className="truncate max-w-[150px] sm:max-w-[240px] text-neutral-400">{title}</span>
         <svg
           className="w-3 h-3 text-neutral-500 group-hover:text-white flex-shrink-0"
           fill="none"
@@ -106,7 +115,7 @@ function CitationPill({ c, index }) {
               <div className="flex items-center gap-2">
                 <span
                   className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                    isDarGlobal ? 'bg-[#EAB308]' : c.source === 'Wasalt' ? 'bg-[#10B981]' : 'bg-[#06B6D4]'
+                    isDarGlobal ? 'bg-[#EAB308]' : source === 'Wasalt' ? 'bg-[#10B981]' : 'bg-[#06B6D4]'
                   }`}
                 />
                 <img
@@ -115,7 +124,7 @@ function CitationPill({ c, index }) {
                   className="w-3.5 h-3.5 rounded-sm object-contain"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
-                <span className="text-[11px] font-bold text-white tracking-wide">{c.source}</span>
+                <span className="text-[11px] font-bold text-white tracking-wide">{source}</span>
               </div>
               {c.category && (
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#202020] text-neutral-400 border border-neutral-800 font-medium">
@@ -126,7 +135,7 @@ function CitationPill({ c, index }) {
 
             {/* Document Title */}
             <h4 className="text-xs font-semibold text-white leading-snug mb-1.5">
-              {c.title}
+              {title}
             </h4>
 
             {/* Grounded Excerpt Snippet */}
@@ -138,7 +147,7 @@ function CitationPill({ c, index }) {
 
             {/* Bottom Action Link with Favicon */}
             <a
-              href={c.url}
+              href={firstUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between text-[11px] font-semibold text-blue-400 hover:text-blue-300 pt-1.5 border-t border-[#222222] transition"
@@ -172,13 +181,18 @@ function CitationPill({ c, index }) {
 export default function CitationsBlock({ citations, loading }) {
   const [revealed, setRevealed] = useState(false);
 
+  const safeCitations = useMemo(() => {
+    if (!Array.isArray(citations)) return [];
+    return citations.filter(c => c && typeof c === 'object');
+  }, [citations]);
+
   useEffect(() => {
-    if (!loading && citations && citations.length > 0) {
-      const t = setTimeout(() => setRevealed(true), 200);
+    if (!loading && safeCitations.length > 0) {
+      const t = setTimeout(() => setRevealed(true), 150);
       return () => clearTimeout(t);
     }
     setRevealed(false);
-  }, [loading, citations]);
+  }, [loading, safeCitations]);
 
   if (loading) {
     return (
@@ -199,8 +213,7 @@ export default function CitationsBlock({ citations, loading }) {
     );
   }
 
-  if (!citations || citations.length === 0) return null;
-  if (!revealed) return null;
+  if (safeCitations.length === 0 || !revealed) return null;
 
   return (
     <div className="mt-4 pt-3 border-t border-[#1C1C1C] animate-appear">
@@ -209,7 +222,7 @@ export default function CitationsBlock({ citations, loading }) {
         <span className="text-[10px] text-neutral-600 font-normal">Hover to preview · Click to visit</span>
       </div>
       <div className="flex flex-wrap gap-2">
-        {citations.map((c, i) => (
+        {safeCitations.map((c, i) => (
           <CitationPill key={c.id || i} c={c} index={i} />
         ))}
       </div>
