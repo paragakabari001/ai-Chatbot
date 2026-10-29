@@ -79,6 +79,7 @@ export default function App() {
 
   // Smart Auto-Scroll
   const chatContainerRef   = useRef(null);
+  const latestTurnRef      = useRef(null);
   const bottomAnchorRef    = useRef(null);
   const isUserAtBottomRef  = useRef(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -127,6 +128,19 @@ export default function App() {
       isUserAtBottomRef.current = true;
       setShowScrollBottom(false);
     }
+  }, []);
+
+  // Smoothly align the NEW user turn right at the top of the chat view
+  const scrollToNewTurnTop = useCallback(() => {
+    setTimeout(() => {
+      if (chatContainerRef.current && latestTurnRef.current) {
+        const turnTop = latestTurnRef.current.offsetTop;
+        chatContainerRef.current.scrollTo({
+          top: Math.max(0, turnTop - 12),
+          behavior: "smooth"
+        });
+      }
+    }, 45);
   }, []);
 
   // Instant scroll during token streaming (no animation lag)
@@ -344,8 +358,8 @@ export default function App() {
     setInput("");
     setIsStreaming(true);
     setCitationsLoading(true);
-    isUserAtBottomRef.current = true;
-    scrollToBottom(true);
+    isUserAtBottomRef.current = false;
+    scrollToNewTurnTop();
 
     if (chatInputRef.current) chatInputRef.current.style.height = "auto";
 
@@ -626,6 +640,7 @@ export default function App() {
             onCancelEdit={handleCancelEdit}
             onSaveEdit={handleSaveEdit}
             chatContainerRef={chatContainerRef}
+            latestTurnRef={latestTurnRef}
             bottomAnchorRef={bottomAnchorRef}
             onScroll={handleScroll}
             showScrollBottom={showScrollBottom}

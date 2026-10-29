@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import UserMessage from './UserMessage';
 import AssistantMessage from './AssistantMessage';
 
@@ -16,49 +16,98 @@ export default function ChatFeed({
   onCancelEdit,
   onSaveEdit,
   chatContainerRef,
+  latestTurnRef,
   bottomAnchorRef,
   onScroll,
   showScrollBottom,
   onScrollToBottom
 }) {
+  // Group conversation into turn pairs (User Query + Assistant Response)
+  const turns = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      if (m.role === "user") {
+        const next = messages[i + 1];
+        if (next && next.role === "assistant") {
+          list.push({
+            id: m.id || `turn_${i}`,
+            userMsg: m,
+            userIdx: i,
+            assistMsg: next,
+            assistIdx: i + 1
+          });
+          i++; // grouped with assistant
+        } else {
+          list.push({
+            id: m.id || `turn_${i}`,
+            userMsg: m,
+            userIdx: i,
+            assistMsg: null,
+            assistIdx: null
+          });
+        }
+      } else {
+        list.push({
+          id: m.id || `turn_${i}`,
+          userMsg: null,
+          userIdx: null,
+          assistMsg: m,
+          assistIdx: i
+        });
+      }
+    }
+    return list;
+  }, [messages]);
+
   return (
     <>
       <div
         ref={chatContainerRef}
         onScroll={onScroll}
-        className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-48 sm:pb-56 px-1"
+        className="flex-1 overflow-y-auto pt-4 pb-48 sm:pb-56 px-1 scroll-smooth"
       >
-        {messages.map((m, idx) => {
-          const isCurrentStreaming = isStreaming && idx === messages.length - 1;
-          const isBeingRead = speakingMsgId === m.id;
+        {turns.map((turn, tIdx) => {
+          const isLatestTurn = tIdx === turns.length - 1;
+          const isCurrentStreaming = isStreaming && isLatestTurn;
+          const isBeingRead = turn.assistMsg && speakingMsgId === turn.assistMsg.id;
 
           return (
             <div
-              key={m.id || idx}
-              className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              key={turn.id}
+              ref={isLatestTurn ? latestTurnRef : null}
+              className="w-full relative pb-4 sm:pb-6"
             >
-              {m.role === "user" ? (
-                <UserMessage
-                  content={m.content}
-                  index={idx}
-                  isEditing={editingIdx === idx}
-                  editInput={editInput}
-                  setEditInput={setEditInput}
-                  onStartEdit={onStartEdit}
-                  onCancelEdit={onCancelEdit}
-                  onSaveEdit={onSaveEdit}
-                  isStreaming={isStreaming}
-                />
-              ) : (
-                <AssistantMessage
-                  message={m}
-                  index={idx}
-                  isCurrentStreaming={isCurrentStreaming}
-                  isBeingRead={isBeingRead}
-                  currentModelObj={currentModelObj}
-                  onToggleSpeech={onToggleSpeech}
-                  onRetry={onRetry}
-                />
+              {/* Sticky User Message Header: stays pinned at top-0 as the response streams / scrolls */}
+              {turn.userMsg && (
+                <div className="sticky top-0 z-20 pt-2 pb-3 mb-2 flex justify-end bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/95 to-transparent backdrop-blur-md">
+                  <UserMessage
+                    content={turn.userMsg.content}
+                    index={turn.userIdx}
+                    isEditing={editingIdx === turn.userIdx}
+                    editInput={editInput}
+                    setEditInput={setEditInput}
+                    onStartEdit={onStartEdit}
+                    onCancelEdit={onCancelEdit}
+                    onSaveEdit={onSaveEdit}
+                    isStreaming={isStreaming}
+                  />
+                </div>
+              )}
+
+              {/* Assistant Response Body */}
+              {turn.assistMsg && (
+                <div className="w-full flex justify-start pl-0.5">
+                  <AssistantMessage
+                    message={turn.assistMsg}
+                    index={turn.assistIdx}
+                    isCurrentStreaming={isCurrentStreaming}
+                    isBeingRead={isBeingRead}
+                    currentModelObj={currentModelObj}
+                    onToggleSpeech={onToggleSpeech}
+                    onRetry={onRetry}
+                  />
+                </div>
               )}
             </div>
           );
@@ -68,7 +117,7 @@ export default function ChatFeed({
         <div ref={bottomAnchorRef} className="h-8 w-full pointer-events-none" />
       </div>
 
-      {/* Scroll-to-bottom floating button (Image 4 style: circular button with down chevron above input) */}
+      {/* Scroll-to-bottom floating button */}
       {showScrollBottom && (
         <button
           type="button"
