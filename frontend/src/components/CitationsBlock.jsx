@@ -1,15 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 function CitationPill({ c, index }) {
   const [hovered, setHovered] = useState(false);
+  const timeoutRef = useRef(null);
   const isDarGlobal = c.source === 'Dar Global';
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setHovered(false);
+    }, 250);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return (
     <div
       className="relative inline-block"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
+      {/* Citation Pill Link */}
       <a
         href={c.url}
         target="_blank"
@@ -38,55 +60,61 @@ function CitationPill({ c, index }) {
         </svg>
       </a>
 
-      {/* Rich Grounding Tooltip Popover on Hover */}
+      {/* Rich Grounding Tooltip Popover with Invisible Hover Bridge */}
       {hovered && (
         <div
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 sm:w-80 p-3 bg-[#161616] border border-[#2E2E2E] rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.85)] z-50 text-left pointer-events-auto animate-appear backdrop-blur-md"
-          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-full left-1/2 -translate-x-1/2 pb-2.5 z-50 pointer-events-auto"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
-          {/* Header Row: Source + Category */}
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#242424] mb-2">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isDarGlobal ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`} />
-              <span className="text-[11px] font-bold text-white tracking-wide">{c.source}</span>
-            </div>
-            {c.category && (
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#202020] text-neutral-400 border border-neutral-800 font-medium">
-                {c.category}
-              </span>
-            )}
-          </div>
-
-          {/* Title */}
-          <h4 className="text-xs font-semibold text-white leading-snug mb-1.5">
-            {c.title}
-          </h4>
-
-          {/* Snippet / Grounded Excerpt */}
-          {c.snippet && (
-            <p className="text-[11px] text-neutral-400 leading-relaxed mb-2.5 line-clamp-3">
-              "{c.snippet}"
-            </p>
-          )}
-
-          {/* Bottom Action Link */}
-          <a
-            href={c.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between text-[11px] font-semibold text-blue-400 hover:text-blue-300 pt-1.5 border-t border-[#222222] transition"
+          <div
+            className="w-72 sm:w-80 p-3 bg-[#161616] border border-[#2E2E2E] rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.9)] text-left animate-appear backdrop-blur-xl relative"
+            onClick={(e) => e.stopPropagation()}
           >
-            <span>Visit official portal</span>
-            <span className="flex items-center gap-1">
-              <span>{isDarGlobal ? "darglobal.co.uk" : "wasalt.sa"}</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
-          </a>
+            {/* Header Row: Source + Category */}
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#242424] mb-2">
+              <div className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isDarGlobal ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`} />
+                <span className="text-[11px] font-bold text-white tracking-wide">{c.source}</span>
+              </div>
+              {c.category && (
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#202020] text-neutral-400 border border-neutral-800 font-medium">
+                  {c.category}
+                </span>
+              )}
+            </div>
 
-          {/* Downward triangle pointer */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#2E2E2E]" />
+            {/* Document Title */}
+            <h4 className="text-xs font-semibold text-white leading-snug mb-1.5">
+              {c.title}
+            </h4>
+
+            {/* Grounded Excerpt Snippet */}
+            {c.snippet && (
+              <p className="text-[11px] text-neutral-400 leading-relaxed mb-2.5 line-clamp-3 bg-[#121212] p-2 rounded-lg border border-[#222222]">
+                "{c.snippet}"
+              </p>
+            )}
+
+            {/* Bottom Action Link */}
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between text-[11px] font-semibold text-blue-400 hover:text-blue-300 pt-1.5 border-t border-[#222222] transition"
+            >
+              <span>Visit official portal</span>
+              <span className="flex items-center gap-1">
+                <span>{isDarGlobal ? "darglobal.co.uk" : "wasalt.sa"}</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </span>
+            </a>
+
+            {/* Downward triangle pointer */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#2E2E2E]" />
+          </div>
         </div>
       )}
     </div>
