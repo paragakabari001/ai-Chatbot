@@ -61,7 +61,7 @@ export default function AssistantMessage({
       {/* Markdown streaming response OR Live Working timer */}
       {message.content ? (
         <div
-          className={`prose-chat transition-all duration-300 ${
+          className={`prose-chat ${
             isCurrentStreaming ? "typing-cursor" : ""
           } ${isBeingRead ? "reading-highlight" : ""}`}
           dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}

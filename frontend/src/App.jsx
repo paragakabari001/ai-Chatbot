@@ -50,10 +50,12 @@ export default function App() {
     }
   }, [currentId, sessions]);
 
-  // Persist sessions to localStorage
+  // Persist sessions to localStorage (only when not streaming to avoid UI jank/flicker)
   useEffect(() => {
-    saveHistory(sessions);
-  }, [sessions]);
+    if (!isStreaming) {
+      saveHistory(sessions);
+    }
+  }, [sessions, isStreaming]);
 
   const currentSession = useMemo(() => {
     return sessions.find(s => s.id === currentId) || sessions[0] || null;
@@ -348,6 +350,24 @@ export default function App() {
       let buffer = "";
       let accumulatedContent = "";
       let currentEvent = "";
+      let flushTimer = null;
+
+      const scheduleFlush = () => {
+        if (flushTimer) return;
+        flushTimer = setTimeout(() => {
+          flushTimer = null;
+          const contentSnapshot = accumulatedContent;
+          setSessions(prev => prev.map(s => {
+            if (s.id !== targetSessionId) return s;
+            return {
+              ...s,
+              messages: (s.messages || []).map(m =>
+                m.id === msgId ? { ...m, content: contentSnapshot } : m
+              )
+            };
+          }));
+        }, 24);
+      };
 
       while (true) {
         const { value, done } = await reader.read();
@@ -397,20 +417,27 @@ export default function App() {
 
               if (tokenText) {
                 accumulatedContent += tokenText;
-                setSessions(prev => prev.map(s => {
-                  if (s.id !== targetSessionId) return s;
-                  return {
-                    ...s,
-                    messages: (s.messages || []).map(m =>
-                      m.id === msgId ? { ...m, content: accumulatedContent } : m
-                    )
-                  };
-                }));
+                scheduleFlush();
               }
             }
           }
         }
       }
+
+      if (flushTimer) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+      }
+      // Final atomic flush to ensure complete text is rendered
+      setSessions(prev => prev.map(s => {
+        if (s.id !== targetSessionId) return s;
+        return {
+          ...s,
+          messages: (s.messages || []).map(m =>
+            m.id === msgId ? { ...m, content: accumulatedContent } : m
+          )
+        };
+      }));
     } catch (err) {
       if (err.name === "AbortError") {
         return;

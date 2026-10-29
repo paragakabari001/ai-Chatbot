@@ -162,21 +162,32 @@ async def chat_stream(
     ]
 
     async def event_generator():
-        # 1. Send citations metadata
-        yield f"event: citations\ndata: {json.dumps(citations)}\n\n"
+        try:
+            # 1. Send citations metadata
+            yield f"event: citations\ndata: {json.dumps(citations)}\n\n"
 
-        # 2. Stream answer tokens
-        async for token in stream_rag_response(
-            query=query,
-            retrieved_docs=docs,
-            model=payload.model,
-            custom_api_key=x_openrouter_key
-        ):
-            payload_data = json.dumps({"token": token})
-            yield f"event: token\ndata: payload_data\n\n".replace("payload_data", payload_data)
+            # 2. Stream answer tokens
+            async for token in stream_rag_response(
+                query=query,
+                retrieved_docs=docs,
+                model=payload.model,
+                custom_api_key=x_openrouter_key
+            ):
+                payload_data = json.dumps({"token": token})
+                yield f"event: token\ndata: {payload_data}\n\n"
 
-        # 3. Send done
-        yield "event: done\ndata: [DONE]\n\n"
+            # 3. Send done
+            yield "event: done\ndata: [DONE]\n\n"
+        except Exception as e:
+            logger.error(f"Error in event_generator stream: {e}", exc_info=True)
+            try:
+                from backend.rag.grounding import generate_extractive_fallback
+                fallback_text = generate_extractive_fallback(query, docs)
+                payload_data = json.dumps({"token": "\n\n" + fallback_text})
+                yield f"event: token\ndata: {payload_data}\n\n"
+            except Exception:
+                pass
+            yield "event: done\ndata: [DONE]\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

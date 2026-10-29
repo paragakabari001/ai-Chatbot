@@ -44,7 +44,7 @@ function CitationPill({ c, index }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Citation Pill Link with Domain Favicon */}
+      {/* Citation Pill Link with Status Dot + Domain Favicon */}
       <a
         href={c.url}
         target="_blank"
@@ -56,7 +56,18 @@ function CitationPill({ c, index }) {
         }`}
         style={{ animationDelay: `${index * 0.06}s` }}
       >
-        {/* Live fetched favicon with fallback */}
+        {/* Status Dot: Gold/Yellow for Dar Global, Green for Wasalt, Cyan for Comparative Analysis */}
+        <span
+          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            isDarGlobal
+              ? 'bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.7)]'
+              : c.source === 'Wasalt'
+              ? 'bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+              : 'bg-[#06B6D4] shadow-[0_0_8px_rgba(6,182,212,0.7)]'
+          }`}
+        />
+
+        {/* Live fetched domain favicon with fallback */}
         <img
           src={faviconUrl}
           alt=""
@@ -90,9 +101,14 @@ function CitationPill({ c, index }) {
             className="w-72 sm:w-80 p-3 bg-[#161616] border border-[#2E2E2E] rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.9)] text-left animate-appear backdrop-blur-xl relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Row: Source + Category */}
+            {/* Header Row: Status Dot + Favicon + Source + Category */}
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#242424] mb-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    isDarGlobal ? 'bg-[#EAB308]' : c.source === 'Wasalt' ? 'bg-[#10B981]' : 'bg-[#06B6D4]'
+                  }`}
+                />
                 <img
                   src={faviconUrl}
                   alt=""

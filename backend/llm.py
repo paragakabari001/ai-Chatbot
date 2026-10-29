@@ -141,20 +141,31 @@ async def stream_rag_response(
     ]
 
     if api_key:
-        try:
-            logger.info(f"Dispatching query to OpenRouter using model: {model}")
-            async for token in call_openrouter_streaming(messages, model, api_key):
-                yield token
-            return
-        except Exception as e:
-            logger.warning(f"OpenRouter streaming failed ({e}). Falling back to local grounded synthesis.")
+        models_to_try = [model]
+        if model != DEFAULT_MODEL:
+            models_to_try.append(DEFAULT_MODEL)
+
+        for try_model in models_to_try:
+            tokens_yielded = 0
+            try:
+                logger.info(f"Dispatching query to OpenRouter using model: {try_model}")
+                async for token in call_openrouter_streaming(messages, try_model, api_key):
+                    tokens_yielded += 1
+                    yield token
+                return
+            except Exception as e:
+                logger.warning(f"OpenRouter streaming with {try_model} failed ({e}).")
+                if tokens_yielded > 0:
+                    # Partial tokens were already sent to client; finish gracefully
+                    return
 
     # Fallback to local deterministic grounded synthesis
+    logger.info("Engaging local deterministic grounded synthesis fallback.")
     fallback_text = generate_extractive_fallback(query, retrieved_docs)
     words = fallback_text.split(" ")
     for i, word in enumerate(words):
         yield word + (" " if i < len(words) - 1 else "")
-        await asyncio.sleep(0.04)
+        await asyncio.sleep(0.02)
 
 
 async def generate_rag_response_sync(
