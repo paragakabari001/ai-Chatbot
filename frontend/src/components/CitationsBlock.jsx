@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+function getDomain(url, fallbackSource) {
+  try {
+    if (url) {
+      const u = new URL(url);
+      return u.hostname.replace(/^www\./, '');
+    }
+  } catch {}
+  return fallbackSource === 'Dar Global' ? 'darglobal.co.uk' : 'wasalt.sa';
+}
+
 function CitationPill({ c, index }) {
   const [hovered, setHovered] = useState(false);
   const timeoutRef = useRef(null);
   const isDarGlobal = c.source === 'Dar Global';
+  const domain = getDomain(c.url, c.source);
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+  const fallbackFaviconUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -31,7 +44,7 @@ function CitationPill({ c, index }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Citation Pill Link */}
+      {/* Citation Pill Link with Domain Favicon */}
       <a
         href={c.url}
         target="_blank"
@@ -43,10 +56,16 @@ function CitationPill({ c, index }) {
         }`}
         style={{ animationDelay: `${index * 0.06}s` }}
       >
-        <span
-          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-            isDarGlobal ? 'bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]' : 'bg-[#10B981] shadow-[0_0_6px_#10B981]'
-          }`}
+        {/* Live fetched favicon with fallback */}
+        <img
+          src={faviconUrl}
+          alt=""
+          className="w-3.5 h-3.5 rounded-sm object-contain flex-shrink-0"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = fallbackFaviconUrl;
+            e.currentTarget.onerror = () => { e.currentTarget.style.display = 'none'; };
+          }}
         />
         <span className="font-semibold text-white whitespace-nowrap">{c.source}:</span>
         <span className="truncate max-w-[150px] sm:max-w-[240px] text-neutral-400">{c.title}</span>
@@ -74,7 +93,12 @@ function CitationPill({ c, index }) {
             {/* Header Row: Source + Category */}
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#242424] mb-2">
               <div className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isDarGlobal ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`} />
+                <img
+                  src={faviconUrl}
+                  alt=""
+                  className="w-3.5 h-3.5 rounded-sm object-contain"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
                 <span className="text-[11px] font-bold text-white tracking-wide">{c.source}</span>
               </div>
               {c.category && (
@@ -96,16 +120,24 @@ function CitationPill({ c, index }) {
               </p>
             )}
 
-            {/* Bottom Action Link */}
+            {/* Bottom Action Link with Favicon */}
             <a
               href={c.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between text-[11px] font-semibold text-blue-400 hover:text-blue-300 pt-1.5 border-t border-[#222222] transition"
             >
-              <span>Visit official portal</span>
+              <span className="flex items-center gap-1.5">
+                <img
+                  src={faviconUrl}
+                  alt=""
+                  className="w-3 h-3 rounded-sm object-contain"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <span>Visit official portal</span>
+              </span>
               <span className="flex items-center gap-1">
-                <span>{isDarGlobal ? "darglobal.co.uk" : "wasalt.sa"}</span>
+                <span>{domain}</span>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>

@@ -124,8 +124,14 @@ export default function EntityCards({ text }) {
 
               {/* Overlay Badges */}
               <div className="absolute top-2 left-2 z-30">
-                <span className="text-[10px] font-semibold px-2 py-0.5 bg-black/75 backdrop-blur-md text-emerald-400 rounded-md border border-emerald-500/30">
-                  {c.source}
+                <span className="text-[10px] font-semibold px-2 py-0.5 bg-black/75 backdrop-blur-md text-emerald-400 rounded-md border border-emerald-500/30 flex items-center gap-1.5">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${c.source === 'Wasalt' ? 'wasalt.sa' : 'darglobal.co.uk'}&sz=32`}
+                    alt=""
+                    className="w-3 h-3 rounded-sm object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span>{c.source}</span>
                 </span>
               </div>
               <div className="absolute top-2 right-2 z-30">
@@ -154,7 +160,15 @@ export default function EntityCards({ text }) {
               </div>
 
               <div className="mt-3 pt-2.5 border-t border-[#262626] flex items-center justify-between text-[11px] text-emerald-400/90 font-medium">
-                <span>View Official Portal</span>
+                <span className="flex items-center gap-1.5">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${c.source === 'Wasalt' ? 'wasalt.sa' : 'darglobal.co.uk'}&sz=32`}
+                    alt=""
+                    className="w-3.5 h-3.5 rounded-sm object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <span>View Official Portal</span>
+                </span>
                 <span className="text-neutral-500 group-hover:text-emerald-400 text-xs">Explore →</span>
               </div>
             </div>

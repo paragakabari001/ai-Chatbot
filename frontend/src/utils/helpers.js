@@ -5,10 +5,20 @@ marked.setOptions({ breaks: true, gfm: true });
 export function renderMarkdown(raw) {
   if (!raw) return "";
   let html = marked.parse(raw);
+
+  // Replace all links with auto-fetched live website favicons and secure attributes
   html = html.replace(
-    /<a\s+([^>]*href=["']https?:\/\/[^"']+["'][^>]*)>/gi,
-    (match, attrs) => `<a ${attrs}><span class="ext-icon">🔗</span>`
+    /<a\s+([^>]*href=["'](https?:\/\/([^"'/\s]+)[^"']*)["'][^>]*)>/gi,
+    (match, attrs, fullUrl, host) => {
+      const cleanHost = host.replace(/^www\./, '');
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${cleanHost}&sz=32`;
+      const fallbackUrl = `https://icons.duckduckgo.com/ip3/${cleanHost}.ico`;
+      const targetRel = attrs.includes("target=") ? "" : ` target="_blank" rel="noopener noreferrer"`;
+
+      return `<a ${attrs}${targetRel} class="inline-link"><img src="${faviconUrl}" alt="" class="ext-favicon inline-block w-3.5 h-3.5 mr-1 align-text-bottom rounded-sm flex-shrink-0" onError="this.onerror=null;this.src='${fallbackUrl}';this.onerror=function(){this.style.display='none';};" />`;
+    }
   );
+
   return html;
 }
 
