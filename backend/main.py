@@ -155,7 +155,8 @@ async def chat_stream(
             "title": d.get("title"),
             "url": d.get("url"),
             "category": d.get("category"),
-            "relevance_score": d.get("relevance_score")
+            "relevance_score": d.get("relevance_score"),
+            "snippet": d.get("content", "").replace("#", "").replace("\n", " ").strip()[:160] + "..."
         }
         for d in docs
     ]
@@ -204,7 +205,8 @@ async def chat_sync(
             "title": d.get("title"),
             "url": d.get("url"),
             "category": d.get("category"),
-            "relevance_score": d.get("relevance_score")
+            "relevance_score": d.get("relevance_score"),
+            "snippet": d.get("content", "").replace("#", "").replace("\n", " ").strip()[:160] + "..."
         }
         for d in docs
     ]
