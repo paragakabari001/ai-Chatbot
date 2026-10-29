@@ -224,6 +224,7 @@ if os.path.exists(ASSETS_DIR):
 
 
 @app.get("/")
+@app.head("/")
 async def serve_index():
     """Serve frontend React web interface."""
     dist_index = os.path.join(DIST_DIR, "index.html")
