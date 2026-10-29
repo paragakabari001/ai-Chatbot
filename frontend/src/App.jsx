@@ -79,7 +79,6 @@ export default function App() {
 
   // Smart Auto-Scroll
   const chatContainerRef   = useRef(null);
-  const latestTurnRef      = useRef(null);
   const bottomAnchorRef    = useRef(null);
   const isUserAtBottomRef  = useRef(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -109,38 +108,55 @@ export default function App() {
     };
   }, [showModelPicker]);
 
-  // Smart auto-scroll logic (generous threshold)
+  // Smart auto-scroll logic (detect if user explicitly scrolled away from bottom)
   const handleScroll = useCallback(() => {
     if (!chatContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 110;
-    isUserAtBottomRef.current = atBottom;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 120;
     setShowScrollBottom(!atBottom && messages.length > 0);
+  }, [messages.length]);
+
+  // Track explicit user wheel / scroll gestures (programmatic scrolls never trigger wheel)
+  const handleWheel = useCallback((e) => {
+    if (e.deltaY < -4) {
+      // User explicitly scrolled UP: pause auto-scrolling
+      isUserAtBottomRef.current = false;
+      setShowScrollBottom(true);
+    } else if (e.deltaY > 4) {
+      // User scrolled DOWN: check if near bottom to re-enable
+      if (chatContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        if (scrollHeight - scrollTop - clientHeight < 120) {
+          isUserAtBottomRef.current = true;
+          setShowScrollBottom(false);
+        }
+      }
+    }
+  }, []);
+
+  const handleTouchMove = useCallback(() => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const atBottom = scrollHeight - scrollTop - clientHeight < 120;
+      isUserAtBottomRef.current = atBottom;
+      setShowScrollBottom(!atBottom && messages.length > 0);
+    }
   }, [messages.length]);
 
   const scrollToBottom = useCallback((smooth = false) => {
     if (chatContainerRef.current) {
       const container = chatContainerRef.current;
-      container.scrollTo({
-        top: container.scrollHeight + 3000,
-        behavior: smooth ? "smooth" : "auto"
-      });
       isUserAtBottomRef.current = true;
       setShowScrollBottom(false);
-    }
-  }, []);
-
-  // Smoothly align the NEW user turn right at the top of the chat view
-  const scrollToNewTurnTop = useCallback(() => {
-    setTimeout(() => {
-      if (chatContainerRef.current && latestTurnRef.current) {
-        const turnTop = latestTurnRef.current.offsetTop;
-        chatContainerRef.current.scrollTo({
-          top: Math.max(0, turnTop - 12),
+      if (smooth) {
+        container.scrollTo({
+          top: container.scrollHeight + 5000,
           behavior: "smooth"
         });
+      } else {
+        container.scrollTop = container.scrollHeight;
       }
-    }, 45);
+    }
   }, []);
 
   // Instant scroll during token streaming (no animation lag)
@@ -358,8 +374,8 @@ export default function App() {
     setInput("");
     setIsStreaming(true);
     setCitationsLoading(true);
-    isUserAtBottomRef.current = false;
-    scrollToNewTurnTop();
+    isUserAtBottomRef.current = true;
+    scrollToBottom(true);
 
     if (chatInputRef.current) chatInputRef.current.style.height = "auto";
 
@@ -397,6 +413,11 @@ export default function App() {
               )
             };
           }));
+
+          // Direct scroll pinning on every token flush if user has not scrolled away
+          if (isUserAtBottomRef.current && chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          }
         }, 24);
       };
 
@@ -469,6 +490,21 @@ export default function App() {
           )
         };
       }));
+
+      // Immediate and timed final scrolls to bottom
+      if (isUserAtBottomRef.current && chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        setTimeout(() => {
+          if (chatContainerRef.current && isUserAtBottomRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          }
+        }, 80);
+        setTimeout(() => {
+          if (chatContainerRef.current && isUserAtBottomRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          }
+        }, 280);
+      }
     } catch (err) {
       if (err.name === "AbortError") {
         return;
@@ -640,9 +676,10 @@ export default function App() {
             onCancelEdit={handleCancelEdit}
             onSaveEdit={handleSaveEdit}
             chatContainerRef={chatContainerRef}
-            latestTurnRef={latestTurnRef}
             bottomAnchorRef={bottomAnchorRef}
             onScroll={handleScroll}
+            onWheel={handleWheel}
+            onTouchMove={handleTouchMove}
             showScrollBottom={showScrollBottom}
             onScrollToBottom={() => scrollToBottom(true)}
           />
