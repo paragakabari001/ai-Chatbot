@@ -1,0 +1,9 @@
+{
+  "name": "dar-global-wasalt-ai-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production AI Chatbot for Dar Global and Wasalt Real Estate",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build"
+  }
+}
