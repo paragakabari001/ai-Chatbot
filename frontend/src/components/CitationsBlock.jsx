@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 function getDomain(url, fallbackSource) {
   try {
     if (url && typeof url === 'string') {
-      // If url contains multiple links separated by " and "
       const firstUrl = url.split(" and ")[0].trim();
       const u = new URL(firstUrl);
       return u.hostname.replace(/^www\./, '');
@@ -53,7 +52,7 @@ function CitationPill({ c, index }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Citation Pill Link with Status Dot + Domain Favicon */}
+      {/* Clean original pill layout with small, subtle dot + live favicon */}
       <a
         href={firstUrl}
         target="_blank"
@@ -65,18 +64,18 @@ function CitationPill({ c, index }) {
         }`}
         style={{ animationDelay: `${index * 0.06}s` }}
       >
-        {/* Status Dot: Gold/Yellow for Dar Global, Green for Wasalt, Cyan for Comparative Analysis */}
+        {/* Small subtle status dot with low lighting (no heavy neon glare) */}
         <span
-          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
             isDarGlobal
-              ? 'bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.7)]'
+              ? 'bg-[#EAB308]'
               : source === 'Wasalt'
-              ? 'bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.7)]'
-              : 'bg-[#06B6D4] shadow-[0_0_8px_rgba(6,182,212,0.7)]'
+              ? 'bg-[#10B981]'
+              : 'bg-[#06B6D4]'
           }`}
         />
 
-        {/* Live fetched domain favicon with fallback */}
+        {/* Live fetched domain favicon */}
         <img
           src={faviconUrl}
           alt=""
@@ -87,6 +86,7 @@ function CitationPill({ c, index }) {
             e.currentTarget.onerror = () => { e.currentTarget.style.display = 'none'; };
           }}
         />
+
         <span className="font-semibold text-white whitespace-nowrap">{source}:</span>
         <span className="truncate max-w-[150px] sm:max-w-[240px] text-neutral-400">{title}</span>
         <svg
@@ -110,11 +110,11 @@ function CitationPill({ c, index }) {
             className="w-72 sm:w-80 p-3 bg-[#161616] border border-[#2E2E2E] rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.9)] text-left animate-appear backdrop-blur-xl relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Row: Status Dot + Favicon + Source + Category */}
+            {/* Header Row: Small Dot + Favicon + Source + Category */}
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#242424] mb-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <span
-                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                     isDarGlobal ? 'bg-[#EAB308]' : source === 'Wasalt' ? 'bg-[#10B981]' : 'bg-[#06B6D4]'
                   }`}
                 />
@@ -156,14 +156,14 @@ function CitationPill({ c, index }) {
                 <img
                   src={faviconUrl}
                   alt=""
-                  className="w-3 h-3 rounded-sm object-contain"
+                  className="w-3.5 h-3.5 rounded-sm object-contain"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
                 <span>Visit official portal</span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 text-neutral-400 font-normal">
                 <span>{domain}</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </span>

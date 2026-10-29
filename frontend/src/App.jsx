@@ -50,6 +50,16 @@ export default function App() {
     }
   }, [currentId, sessions]);
 
+  // ── Chat & UI State ────────────────────────────────────────────────────────
+  const [input, setInput]                             = useState("");
+  const [isStreaming, setIsStreaming]                  = useState(false);
+  const [model, setModel]                             = useState("openai/gpt-4o");
+  const [showModelPicker, setShowModelPicker]         = useState(false);
+  const [showRecruiterModal, setShowRecruiterModal]   = useState(false);
+  const [sidebarOpen, setSidebarOpen]                 = useState(false);
+  const [, setCitationsLoading]                        = useState(false);
+  const [speakingMsgId, setSpeakingMsgId]             = useState(null);
+
   // Persist sessions to localStorage (only when not streaming to avoid UI jank/flicker)
   useEffect(() => {
     if (!isStreaming) {
@@ -63,22 +73,13 @@ export default function App() {
 
   const messages = currentSession?.messages || [];
 
-  // ── Chat & UI State ────────────────────────────────────────────────────────
-  const [input, setInput]                             = useState("");
-  const [isStreaming, setIsStreaming]                  = useState(false);
-  const [model, setModel]                             = useState("openai/gpt-4o");
-  const [showModelPicker, setShowModelPicker]         = useState(false);
-  const [showRecruiterModal, setShowRecruiterModal]   = useState(false);
-  const [sidebarOpen, setSidebarOpen]                 = useState(false);
-  const [, setCitationsLoading]                        = useState(false);
-  const [speakingMsgId, setSpeakingMsgId]             = useState(null);
-
   // User message inline edit
   const [editingIdx, setEditingIdx]                   = useState(null);
   const [editInput, setEditInput]                     = useState("");
 
   // Smart Auto-Scroll
   const chatContainerRef   = useRef(null);
+  const bottomAnchorRef    = useRef(null);
   const isUserAtBottomRef  = useRef(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
 
@@ -107,19 +108,20 @@ export default function App() {
     };
   }, [showModelPicker]);
 
-  // Smart auto-scroll logic
+  // Smart auto-scroll logic (generous threshold)
   const handleScroll = useCallback(() => {
     if (!chatContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 80;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 110;
     isUserAtBottomRef.current = atBottom;
     setShowScrollBottom(!atBottom && messages.length > 0);
   }, [messages.length]);
 
-  const scrollToBottom = useCallback((smooth = true) => {
+  const scrollToBottom = useCallback((smooth = false) => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
+      const container = chatContainerRef.current;
+      container.scrollTo({
+        top: container.scrollHeight + 3000,
         behavior: smooth ? "smooth" : "auto"
       });
       isUserAtBottomRef.current = true;
@@ -127,11 +129,26 @@ export default function App() {
     }
   }, []);
 
+  // Instant scroll during token streaming (no animation lag)
   useEffect(() => {
-    if (isUserAtBottomRef.current) {
-      scrollToBottom(true);
+    if (isStreaming && isUserAtBottomRef.current) {
+      scrollToBottom(false);
     }
   }, [messages, isStreaming, scrollToBottom]);
+
+  // When streaming completes, smoothly follow expanding citations & entity preview cards all the way to the bottom
+  useEffect(() => {
+    if (!isStreaming && messages.length > 0 && isUserAtBottomRef.current) {
+      const t1 = setTimeout(() => scrollToBottom(true), 60);
+      const t2 = setTimeout(() => scrollToBottom(true), 220);
+      const t3 = setTimeout(() => scrollToBottom(true), 450);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [isStreaming, messages.length, scrollToBottom]);
 
   const updateSession = (sessId, updater) => {
     setSessions(prev => {
@@ -528,56 +545,60 @@ export default function App() {
       {/* Main Canvas */}
       <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-3 sm:px-4 overflow-hidden relative">
         {messages.length === 0 ? (
-          /* Empty / Welcome State */
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-2 pb-16 sm:pb-20">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]" />
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
-              What should we explore?
-            </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">
-              Dar Global luxury real estate · Wasalt Saudi properties
-            </p>
+          /* Empty / Welcome State: Vertically centered prompt with pinned bottom footer */
+          <div className="flex-1 flex flex-col justify-between items-center text-center px-2 pt-6 pb-2 h-full">
+            <div className="w-full" />
 
-            <div className="w-full max-w-2xl mb-5 sm:mb-6">
-              <InputBar
-                compact={false}
-                input={input}
-                setInput={setInput}
-                isStreaming={isStreaming}
-                handleSend={handleSend}
-                handleStopStreaming={handleStopStreaming}
-                handleNewChat={handleNewChat}
-                chatInputRef={chatInputRef}
-                popoverRef={popoverRef}
-                showModelPicker={showModelPicker}
-                setShowModelPicker={setShowModelPicker}
-                model={model}
-                setModel={setModel}
-                currentModelObj={currentModelObj}
-              />
+            <div className="w-full flex flex-col items-center justify-center my-auto">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]" />
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
+                What should we explore?
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">
+                Dar Global luxury real estate · Wasalt Saudi properties
+              </p>
+
+              <div className="w-full max-w-2xl mb-5 sm:mb-6">
+                <InputBar
+                  compact={false}
+                  input={input}
+                  setInput={setInput}
+                  isStreaming={isStreaming}
+                  handleSend={handleSend}
+                  handleStopStreaming={handleStopStreaming}
+                  handleNewChat={handleNewChat}
+                  chatInputRef={chatInputRef}
+                  popoverRef={popoverRef}
+                  showModelPicker={showModelPicker}
+                  setShowModelPicker={setShowModelPicker}
+                  model={model}
+                  setModel={setModel}
+                  currentModelObj={currentModelObj}
+                />
+              </div>
+
+              {/* Readymade Quick Prompts */}
+              <div className="flex flex-wrap gap-2 max-w-2xl justify-center">
+                {quickPrompts.map((p, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleSelectPrompt(p)}
+                    title="Click to paste into input"
+                    className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1E1E1E] border border-[#222222] hover:border-neutral-600 px-3 py-1.5 rounded-full transition text-left flex items-center gap-1.5"
+                  >
+                    <span>💬</span>
+                    <span className="truncate max-w-[280px] sm:max-w-none">{p}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Readymade Quick Prompts */}
-            <div className="flex flex-wrap gap-2 max-w-2xl justify-center">
-              {quickPrompts.map((p, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleSelectPrompt(p)}
-                  title="Click to paste into input"
-                  className="text-xs text-neutral-400 hover:text-white bg-[#141414] hover:bg-[#1E1E1E] border border-[#222222] hover:border-neutral-600 px-3 py-1.5 rounded-full transition text-left flex items-center gap-1.5"
-                >
-                  <span>💬</span>
-                  <span className="truncate max-w-[280px] sm:max-w-none">{p}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Assessment Footer By Parag Akabari */}
-            <div className="mt-8 text-center text-[11px] text-neutral-500 font-normal">
+            {/* Assessment Footer By Parag Akabari - Pinned at the very bottom */}
+            <div className="w-full pt-4 pb-2 text-center text-[11px] text-neutral-500 font-normal">
               <span>Assessment by </span>
               <button
                 type="button"
@@ -605,6 +626,7 @@ export default function App() {
             onCancelEdit={handleCancelEdit}
             onSaveEdit={handleSaveEdit}
             chatContainerRef={chatContainerRef}
+            bottomAnchorRef={bottomAnchorRef}
             onScroll={handleScroll}
             showScrollBottom={showScrollBottom}
             onScrollToBottom={() => scrollToBottom(true)}

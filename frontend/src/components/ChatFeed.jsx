@@ -16,6 +16,7 @@ export default function ChatFeed({
   onCancelEdit,
   onSaveEdit,
   chatContainerRef,
+  bottomAnchorRef,
   onScroll,
   showScrollBottom,
   onScrollToBottom
@@ -25,7 +26,7 @@ export default function ChatFeed({
       <div
         ref={chatContainerRef}
         onScroll={onScroll}
-        className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-56 sm:pb-64 px-1"
+        className="flex-1 overflow-y-auto space-y-5 sm:space-y-6 pt-4 pb-48 sm:pb-56 px-1"
       >
         {messages.map((m, idx) => {
           const isCurrentStreaming = isStreaming && idx === messages.length - 1;
@@ -62,6 +63,9 @@ export default function ChatFeed({
             </div>
           );
         })}
+
+        {/* Dedicated bottom clearance anchor for 100% full scroll clearance */}
+        <div ref={bottomAnchorRef} className="h-8 w-full pointer-events-none" />
       </div>
 
       {/* Scroll-to-bottom floating button (Image 4 style: circular button with down chevron above input) */}
