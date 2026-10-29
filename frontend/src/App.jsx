@@ -13,11 +13,20 @@ import InputBar from './components/InputBar';
 import ChatFeed from './components/ChatFeed';
 import RecruiterModal from './components/RecruiterModal';
 
+function formatSessionTitle(text) {
+  if (!text) return "Real Estate Consultation";
+  const clean = text.replace(/^[#*`_~\s]+/, "").trim();
+  const title = clean.charAt(0).toUpperCase() + clean.slice(1);
+  return title.length > 38 ? title.slice(0, 38).trim() + "…" : title;
+}
+
 export default function App() {
   // ── Session State ──────────────────────────────────────────────────────────
   const [sessions, setSessions] = useState(() => {
     const h = loadHistory();
-    if (h && h.length > 0) return h;
+    // Keep sessions with actual messages or initialize with 1 clean session
+    const valid = (h || []).filter(s => s.messages && s.messages.length > 0);
+    if (valid.length > 0) return valid;
     const initial = newSession();
     return [initial];
   });
@@ -214,6 +223,26 @@ export default function App() {
     });
   }, [currentId]);
 
+  // ── Clear All History ──────────────────────────────────────────────────────
+  const handleClearAll = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    setSpeakingMsgId(null);
+    setIsStreaming(false);
+    setCitationsLoading(false);
+    setEditingIdx(null);
+    setInput("");
+
+    const fresh = newSession();
+    setSessions([fresh]);
+    setCurrentId(fresh.id);
+    saveCurrentId(fresh.id);
+    saveHistory([fresh]);
+  }, []);
+
   // ── Stop Streaming Immediately ─────────────────────────────────────────────
   const handleStopStreaming = useCallback(() => {
     if (abortControllerRef.current) {
@@ -276,18 +305,19 @@ export default function App() {
       if (!exists) {
         return [{
           id: targetSessionId,
-          title: query.slice(0, 40),
+          title: formatSessionTitle(query),
           messages: [userMsg, assistMsg],
           ts: Date.now()
         }, ...prev];
       }
       return prev.map(s => {
         if (s.id !== targetSessionId) return s;
-        const isNewTitle = !s.messages || s.messages.length === 0 || s.title === "New Chat";
+        const isNewTitle = !s.messages || s.messages.length === 0 || s.title === "New Chat" || s.title === "Untitled Chat";
         return {
           ...s,
-          title: isNewTitle ? query.slice(0, 40) : s.title,
-          messages: [...(s.messages || []), userMsg, assistMsg]
+          title: isNewTitle ? formatSessionTitle(query) : s.title,
+          messages: [...(s.messages || []), userMsg, assistMsg],
+          ts: s.ts || Date.now()
         };
       });
     });
@@ -457,6 +487,7 @@ export default function App() {
         onSelect={handleSelectSession}
         onNew={handleNewChat}
         onDelete={handleDeleteSession}
+        onClearAll={handleClearAll}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
