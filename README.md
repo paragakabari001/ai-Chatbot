@@ -3,7 +3,7 @@
 > **Production AI Full-Stack Engineer (FDE) Technical Assignment**  
 > Candidate: **PARAG AKABARI**  
 > Repository: [https://github.com/paragakabari001/ai-Chatbot.git](https://github.com/paragakabari001/ai-Chatbot.git)  
-> Live Application URL: [https://easily-subscriptions-defensive-questions.trycloudflare.com](https://easily-subscriptions-defensive-questions.trycloudflare.com)  
+> Live Application URL: [https://modified-minute-electronic-providers.trycloudflare.com](https://modified-minute-electronic-providers.trycloudflare.com)  
 
 ---
 
@@ -182,7 +182,7 @@ A ready-to-deploy configuration is provided:
 ai-Chatbot/
 ├── backend/
 │   ├── main.py                  # FastAPI application with SSE streaming & REST routes
-│   ├── llm.py                   # OpenRouter client, free model router & fallback
+│   ├── llm.py                   # OpenRouter client, model router & fallback
 │   └── rag/
 │       ├── retriever.py         # Grounded BM25 retriever & ranking engine
 │       └── grounding.py         # Grounding prompts, citation formatter & guardrails
@@ -190,10 +190,14 @@ ai-Chatbot/
 │   ├── knowledge_base.json      # Ingested 59 documents from Dar Global & Wasalt
 │   └── documents/               # Modular Markdown knowledge chunks
 ├── frontend/
-│   ├── index.html               # Modern luxury SPA UI
-│   └── static/
-│       ├── style.css            # Gold & emerald luxury design system
-│       └── app.js               # Real-time SSE streaming & citations UI
+│   ├── src/                     # Modular React 18 component architecture
+│   │   ├── components/          # Header, Sidebar, ChatFeed, InputBar, ModelPicker...
+│   │   ├── utils/               # Models catalog & helper utilities
+│   │   ├── App.jsx              # Application coordinator & streaming state
+│   │   └── main.jsx             # React DOM entry point
+│   ├── dist/                    # Production built static bundle
+│   ├── package.json             # Frontend dependencies (React, Vite, Tailwind)
+│   └── vite.config.js           # Vite build configuration
 ├── scripts/
 │   └── collector.py             # Ethical, robots.txt-compliant scraper
 ├── tests/
@@ -213,4 +217,4 @@ ai-Chatbot/
 - **Candidate**: Parag Akabari
 - **Role**: AI Full-Stack Engineer (FDE)
 - **GitHub Repository**: [paragakabari001/ai-Chatbot](https://github.com/paragakabari001/ai-Chatbot.git)
-- **Live Demo URL**: [https://easily-subscriptions-defensive-questions.trycloudflare.com](https://easily-subscriptions-defensive-questions.trycloudflare.com)
+- **Live Demo URL**: [https://modified-minute-electronic-providers.trycloudflare.com](https://modified-minute-electronic-providers.trycloudflare.com)
