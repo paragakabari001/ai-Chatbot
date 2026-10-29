@@ -187,7 +187,7 @@ export default function Sidebar({
               <span>Clear all</span>
             </button>
           ) : (
-            <span className="text-[10px] text-neutral-600">Dar Global & Wasalt</span>
+            <span className="text-[10px] text-neutral-500">Assessment by Parag Akabari</span>
           )}
 
           <span className="text-[10px] text-neutral-500">

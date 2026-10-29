@@ -548,6 +548,19 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            {/* Assessment Footer By Parag Akabari */}
+            <div className="mt-8 text-center text-[11px] text-neutral-500 font-normal">
+              <span>Assessment by </span>
+              <button
+                type="button"
+                onClick={() => setShowRecruiterModal(true)}
+                className="text-neutral-300 hover:text-white font-medium underline underline-offset-2 transition"
+              >
+                Parag Akabari
+              </button>
+              <span className="text-neutral-600 hidden sm:inline"> · Grounded on Dar Global & Wasalt</span>
+            </div>
           </div>
         ) : (
           /* Active Chat Feed */
@@ -573,7 +586,7 @@ export default function App() {
 
         {/* Floating Input Bar with background gradient fade (prevents text overlap) */}
         {messages.length > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 px-2 sm:px-3 pb-3 sm:pb-4 pt-8 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/95 to-transparent pointer-events-none">
+          <div className="absolute bottom-0 left-0 right-0 px-2 sm:px-3 pb-1.5 sm:pb-2 pt-6 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/95 to-transparent pointer-events-none">
             <div className="pointer-events-auto max-w-3xl mx-auto">
               <InputBar
                 compact={true}
@@ -591,6 +604,18 @@ export default function App() {
                 setModel={setModel}
                 currentModelObj={currentModelObj}
               />
+              {/* Subtle Candidate Credit Footer */}
+              <div className="text-center pt-1.5 pb-0.5 text-[10px] text-neutral-500 font-normal">
+                <span>Assessment by </span>
+                <button
+                  type="button"
+                  onClick={() => setShowRecruiterModal(true)}
+                  className="text-neutral-400 hover:text-neutral-200 font-medium underline underline-offset-2 transition"
+                >
+                  Parag Akabari
+                </button>
+                <span className="text-neutral-600"> · Grounded AI Chatbot</span>
+              </div>
             </div>
           </div>
         )}
