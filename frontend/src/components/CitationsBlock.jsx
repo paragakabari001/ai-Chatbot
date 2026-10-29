@@ -50,7 +50,7 @@ export default function CitationsBlock({ citations, loading }) {
           >
             <span className={`w-1.5 h-1.5 rounded-full ${c.source === 'Dar Global' ? 'bg-[#D4AF37]' : 'bg-[#10B981]'}`} />
             <span className="font-semibold text-white">{c.source}:</span>
-            <span className="truncate max-w-[160px] text-neutral-400">{c.title}</span>
+            <span className="truncate max-w-[160px] sm:max-w-[260px] text-neutral-400">{c.title}</span>
           </a>
         ))}
       </div>
