@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Models catalog: Flagship GPT-4o and verified free options
+# Models catalog: Flagship GPT-4o and verified active options
 SUPPORTED_FREE_MODELS = [
     {
         "id": "openai/gpt-4o",
@@ -26,24 +26,28 @@ SUPPORTED_FREE_MODELS = [
         "recommended": True
     },
     {
-        "id": "google/gemini-2.0-flash-exp:free",
-        "name": "Gemini 2.0 Flash (Free)",
-        "description": "High speed conversational model.",
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash",
+        "description": "High-speed conversational reasoning and grounding.",
         "recommended": False
     },
     {
-        "id": "meta-llama/llama-3.3-70b-instruct:free",
-        "name": "Llama 3.3 70B (Free)",
-        "description": "Open weights reasoning model.",
-        "recommended": False
-    },
-    {
-        "id": "qwen/qwen-2.5-coder-32b-instruct:free",
-        "name": "Qwen 2.5 Coder 32B (Free)",
-        "description": "High precision coding & reasoning.",
+        "id": "meta-llama/llama-3.3-70b-instruct",
+        "name": "Llama 3.3 70B",
+        "description": "Deep instruction following and open weights.",
         "recommended": False
     }
 ]
+
+# Legacy / discontinued model slug fallback mapping
+MODEL_ALIASES = {
+    "google/gemini-2.0-flash-exp:free": "google/gemini-2.5-flash",
+    "google/gemini-2.0-flash-exp": "google/gemini-2.5-flash",
+    "google/gemini-2.0-flash": "google/gemini-2.5-flash",
+    "google/gemini-flash": "google/gemini-2.5-flash",
+    "meta-llama/llama-3.3-70b-instruct:free": "meta-llama/llama-3.3-70b-instruct",
+    "meta-llama/llama-3-70b": "meta-llama/llama-3.3-70b-instruct"
+}
 
 DEFAULT_MODEL = "openai/gpt-4o"
 
@@ -80,6 +84,7 @@ async def call_openrouter_streaming(
     api_key: str
 ) -> AsyncGenerator[str, None]:
     """Stream response tokens from OpenRouter API."""
+    resolved_model = MODEL_ALIASES.get(model, model)
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -87,10 +92,10 @@ async def call_openrouter_streaming(
         "X-Title": "DarGlobal-Wasalt-RealEstate-Chatbot"
     }
     payload = {
-        "model": model,
+        "model": resolved_model,
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 1200,
+        "max_tokens": 800,
         "stream": True
     }
 

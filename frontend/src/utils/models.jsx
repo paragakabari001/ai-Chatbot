@@ -44,22 +44,22 @@ export const SUPPORTED_MODELS = [
     iconColor: "text-emerald-400"
   },
   {
-    id: "google/gemini-2.0-flash-exp:free",
-    label: "Gemini 2.0 Flash",
+    id: "google/gemini-2.5-flash",
+    label: "Gemini 2.5 Flash",
     shortLabel: "Gemini Flash",
     desc: "High-speed conversational reasoning",
-    badge: "Free",
-    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700/60",
+    badge: "Fast",
+    badgeColor: "bg-neutral-800 text-neutral-300 border border-neutral-700/60",
     icon: GeminiIcon,
     iconColor: "text-blue-400"
   },
   {
-    id: "meta-llama/llama-3.3-70b-instruct:free",
+    id: "meta-llama/llama-3.3-70b-instruct",
     label: "Llama 3.3 70B",
     shortLabel: "Llama 3.3",
     desc: "Open-weights deep instruction following",
-    badge: "Free",
-    badgeColor: "bg-neutral-800 text-neutral-400 border border-neutral-700/60",
+    badge: "Balanced",
+    badgeColor: "bg-neutral-800 text-neutral-300 border border-neutral-700/60",
     icon: MetaLlamaIcon,
     iconColor: "text-blue-500"
   }
